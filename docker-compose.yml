@@ -1,0 +1,39 @@
+# Levanta SiGeRU completo con "docker compose up":
+#   - web:  Apache+PHP en http://localhost:8080, sirviendo todo este directorio
+#           (las 3 APIs + los 3 frontends), igual que XAMPP hoy.
+#   - db:   MariaDB con code.sql ya cargado la primera vez que se crea el volumen.
+#
+# La primera vez, o después de "docker compose down -v", hace falta un
+# administrador para poder aprobar solicitudes/entrar al panel - ver
+# claude/plan_pasos_correccion.md (quinta vuelta) para el script de alta.
+
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: sigeru_docker
+      MYSQL_DATABASE: SiGeRU
+    volumes:
+      - ./docker/init-db:/docker-entrypoint-initdb.d:ro
+      - db-datos:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      # Estos 3 .env solo se usan adentro de Docker (apuntan a DB_HOST=db);
+      # los .env reales de cada API (para XAMPP) no se tocan.
+      - ./docker/env/api-usuarios.env:/var/www/html/api-usuarios/Application/Configuration/.env:ro
+      - ./docker/env/api-gestion.env:/var/www/html/api-gestion/configuration/.env:ro
+      - ./docker/env/api-recoleccion.env:/var/www/html/api-recoleccion/Configuration/.env:ro
+
+volumes:
+  db-datos:

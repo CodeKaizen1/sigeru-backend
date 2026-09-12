@@ -1,0 +1,522 @@
+<?php
+// Router HTTP para api-usuarios. Expone los Controllers por HTTP.
+//
+// Uso:
+//   GET    index.php?recurso=usuario                -> obtenerTodos()
+//   GET    index.php?recurso=usuario&id=12345678     -> obtenerPorId(...)
+//   POST   index.php?recurso=usuario   (body JSON)   -> crear(...)
+//   PUT    index.php?recurso=usuario&id=... (body JSON) -> modificar(...)
+//   DELETE index.php?recurso=usuario&id=...          -> eliminar(...)
+//
+// Recursos: usuario, administradorMunicipal, operarioDeCuadrilla,
+// operarioDeInstalacion, inicioDeSesion, solicitudDeUsuario
+//
+// Endpoints especiales: login, logout, recuperarPassword,
+// restablecerPassword, cambiarPassword
+
+session_start();
+
+$origenesPermitidos = ["http://localhost", "http://127.0.0.1"];
+$origenSolicitante = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origenSolicitante, $origenesPermitidos, true)) {
+    header("Access-Control-Allow-Origin: $origenSolicitante");
+    header('Access-Control-Allow-Credentials: true');
+}
+
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+// exigirSesion(), exigirRolAdministradorSiEscribe(), validarCamposObligatorios()
+// y soloCambianCamposPermitidos() viven en Utilidades.php (antes estaban acá
+// duplicadas idénticas en las 3 APIs) para poder probarlas con PHPUnit.
+require_once __DIR__ . "/Application/Utilidades.php";
+
+// Usuario primero: AdministradorMunicipal, OperarioDeCuadrilla y
+// OperarioDeInstalacion heredan de ella.
+require_once "Application/Controller/UsuarioController.php";
+require_once "Application/Controller/AdministradorMunicipalController.php";
+require_once "Application/Controller/OperarioDeCuadrillaController.php";
+require_once "Application/Controller/OperarioDeInstalacionController.php";
+require_once "Application/Controller/InicioDeSesion.php";
+require_once "Application/Controller/SolicitudDeUsuarioController.php";
+require_once "Application/Controller/PasswordResetController.php";
+
+$recursos = [
+    'usuario' => [
+        'controller' => 'UsuarioController',
+        'modelo' => 'Usuario',
+        'campos' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'calleUsuario', 'numeroPuertaUsuario', 'numeroApartamentoUsuario', 'emailUsuario', 'telefonoUsuario', 'fechaNacimientoUsuario', 'estadoUsuario', 'rolUsuario'],
+        'obligatoriosCrear' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario'],
+        'obligatoriosModificar' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario'],
+    ],
+    'administradorMunicipal' => [
+        'controller' => 'AdministradorMunicipalController',
+        'modelo' => 'AdministradorMunicipal',
+        'campos' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'calleUsuario', 'numeroPuertaUsuario', 'numeroApartamentoUsuario', 'emailUsuario', 'telefonoUsuario', 'fechaNacimientoUsuario', 'estadoUsuario', 'rolUsuario', 'idAdministradorMunicipal', 'correoInstaladorMunicipal'],
+        'obligatoriosCrear' => ['cedulaUsuario'],
+        'obligatoriosModificar' => ['idAdministradorMunicipal', 'cedulaUsuario'],
+    ],
+    'operarioDeCuadrilla' => [
+        'controller' => 'OperarioDeCuadrillaController',
+        'modelo' => 'OperarioDeCuadrilla',
+        'campos' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'calleUsuario', 'numeroPuertaUsuario', 'numeroApartamentoUsuario', 'emailUsuario', 'telefonoUsuario', 'fechaNacimientoUsuario', 'estadoUsuario', 'rolUsuario', 'idOperarioDeCuadrilla', 'estadoOperarioDeCuadrilla', 'cargoOperarioDeCuadrilla', 'turnoOperarioDeCuadrilla', 'horaInicioOperarioDeCuadrilla', 'horaFinOperarioDeCuadrilla', 'licenciaDeConducirOperarioDeCuadrilla', 'idCuadrilla'],
+        'obligatoriosCrear' => ['cedulaUsuario'],
+        'obligatoriosModificar' => ['idOperarioDeCuadrilla', 'cedulaUsuario'],
+    ],
+    'operarioDeInstalacion' => [
+        'controller' => 'OperarioDeInstalacionController',
+        'modelo' => 'OperarioDeInstalacion',
+        'campos' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'calleUsuario', 'numeroPuertaUsuario', 'numeroApartamentoUsuario', 'emailUsuario', 'telefonoUsuario', 'fechaNacimientoUsuario', 'estadoUsuario', 'rolUsuario', 'turnoOperarioDeInstalacion', 'instalacionAsignada', 'estadoOperarioDeInstalacion', 'cargoOperarioDeInstalacion'],
+        'obligatoriosCrear' => ['cedulaUsuario'],
+        'obligatoriosModificar' => ['cedulaUsuario'],
+    ],
+    'inicioDeSesion' => [
+        'controller' => 'InicioDeSesionController',
+        'modelo' => 'InicioDeSesion',
+        'campos' => ['idUsuarioInicioDeSesion', 'contraseniaUsuarioInicioDeSesion'],
+        'obligatoriosCrear' => ['idUsuarioInicioDeSesion', 'contraseniaUsuarioInicioDeSesion'],
+        'obligatoriosModificar' => ['idUsuarioInicioDeSesion', 'contraseniaUsuarioInicioDeSesion'],
+    ],
+    'solicitudDeUsuario' => [
+        'controller' => 'SolicitudDeUsuarioController',
+        'modelo' => 'SolicitudDeUsuario',
+        'campos' => ['idSolicitud', 'cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'direccionCompletaUsuario', 'emailUsuario', 'telefonoUsuario', 'fechaNacimientoUsuario', 'contraseniaSolicitud', 'rolSolicitado', 'estadoSolicitud', 'fechaSolicitud', 'motivoRechazo', 'fechaRechazo'],
+        'obligatoriosCrear' => ['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario', 'contraseniaSolicitud'],
+        'obligatoriosModificar' => ['idSolicitud', 'nombreUsuario', 'apellidoUsuario', 'contraseniaSolicitud'],
+    ],
+];
+
+$recurso = $_GET['recurso'] ?? null;
+$id = $_GET['id'] ?? null;
+$metodo = $_SERVER['REQUEST_METHOD'];
+
+$datos = null;
+if ($metodo === 'POST' || $metodo === 'PUT') {
+    $datos = json_decode(file_get_contents('php://input'), true) ?? [];
+}
+
+// Login: busca por email y verifica la contraseña con password_verify().
+if ($recurso === 'login') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'El login solo acepta POST']);
+        exit;
+    }
+
+    $email = trim($datos['email'] ?? '');
+    $password = $datos['password'] ?? '';
+
+    if ($email === '' || $password === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Faltan email o password']);
+        exit;
+    }
+
+    $controllerLogin = new InicioDeSesionController();
+    $resultado = $controllerLogin->login($email, $password);
+
+    if ($resultado === null) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Correo o contraseña incorrectos']);
+        exit;
+    }
+
+    if (isset($resultado['inactivo'])) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Tu cuenta todavía no está activa. Consultá con el Administrador.']);
+        exit;
+    }
+
+    $_SESSION['cedulaUsuario'] = $resultado['cedulaUsuario'];
+    $_SESSION['rolUsuario'] = $resultado['rol'];
+
+    echo json_encode(['exito' => true, 'usuario' => $resultado]);
+    exit;
+}
+
+if ($recurso === 'logout') {
+    $_SESSION = [];
+    session_destroy();
+    echo json_encode(['exito' => true]);
+    exit;
+}
+
+// Genera un token de recuperación y lo devuelve directo (no hay mail configurado).
+if ($recurso === 'recuperarPassword') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'recuperarPassword solo acepta POST']);
+        exit;
+    }
+
+    $email = trim($datos['email'] ?? '');
+    if ($email === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Falta el email']);
+        exit;
+    }
+
+    $usuarioController = new UsuarioController();
+    $usuarioEncontrado = $usuarioController->obtenerPorEmail($email);
+
+    // No se confirma si el email existe o no.
+    if ($usuarioEncontrado === false) {
+        echo json_encode(['exito' => true, 'mensaje' => 'Si el email está registrado, en breve vas a poder generar un nuevo link de recuperación.']);
+        exit;
+    }
+
+    $resetController = new PasswordResetController();
+    $token = $resetController->crear($usuarioEncontrado['cedulaUsuario']);
+
+    echo json_encode(['exito' => true, 'token' => $token]);
+    exit;
+}
+
+if ($recurso === 'restablecerPassword') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'restablecerPassword solo acepta POST']);
+        exit;
+    }
+
+    $token = $datos['token'] ?? '';
+    $nuevaPassword = $datos['contraseniaNueva'] ?? '';
+
+    if ($token === '' || $nuevaPassword === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Faltan token o contraseniaNueva']);
+        exit;
+    }
+
+    $resetController = new PasswordResetController();
+    $fila = $resetController->buscarPorToken($token);
+
+    if ($fila === false || strtotime($fila['expiraPasswordReset']) < time()) {
+        http_response_code(400);
+        echo json_encode(['error' => 'El link de recuperación no es válido o ya venció. Pedí uno nuevo.']);
+        exit;
+    }
+
+    $inicioController = new InicioDeSesionController();
+    $inicioController->modificar(new InicioDeSesion($fila['cedulaUsuario'], $nuevaPassword));
+
+    // Token de un solo uso.
+    $resetController->eliminar($fila['idPasswordReset']);
+
+    echo json_encode(['exito' => true]);
+    exit;
+}
+
+// El registro público (alta de solicitudDeUsuario) no requiere sesión.
+$esRegistroPublico = ($recurso === 'solicitudDeUsuario' && $metodo === 'POST');
+if (!$esRegistroPublico) {
+    exigirSesion();
+}
+
+if ($recurso === 'cambiarPassword') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'cambiarPassword solo acepta POST']);
+        exit;
+    }
+
+    $actual = $datos['contraseniaActual'] ?? '';
+    $nueva = $datos['contraseniaNueva'] ?? '';
+
+    if ($actual === '' || $nueva === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Faltan contraseniaActual o contraseniaNueva']);
+        exit;
+    }
+
+    $cedula = $_SESSION['cedulaUsuario'];
+    $inicioController = new InicioDeSesionController();
+    $filaActual = $inicioController->obtenerPorId($cedula);
+
+    if ($filaActual === false || !password_verify($actual, $filaActual['contraseniaUsuarioInicioDeSesion'])) {
+        http_response_code(403);
+        echo json_encode(['error' => 'La contraseña actual no es correcta.']);
+        exit;
+    }
+
+    $inicioController->modificar(new InicioDeSesion($cedula, $nueva));
+
+    echo json_encode(['exito' => true]);
+    exit;
+}
+
+// Traduce el rol de cuenta al "cargo" de operarioDeCuadrilla; null si no aplica.
+function cargoOperarioDeCuadrillaSegunRol($rol) {
+    return in_array($rol, ['chofer', 'jefeDeCuadrilla', 'operarioDeCuadrilla'], true) ? $rol : null;
+}
+
+// Crea usuario + inicioDeSesion + subtipo (administrador u operarioDeCuadrilla)
+// para un rol de cuenta; deshace lo insertado si un paso falla.
+function crearPersonaConRol($datosUsuario, $rol, $passwordParaInicioDeSesion, $passwordYaHasheada) {
+    $usuarioController = new UsuarioController();
+    $inicioController = new InicioDeSesionController();
+
+    if ($usuarioController->obtenerPorId($datosUsuario['cedulaUsuario']) !== false) {
+        return ['error' => 'Ya existe una persona con esa cédula.'];
+    }
+
+    $nuevoUsuario = new Usuario(
+        $datosUsuario['cedulaUsuario'],
+        $datosUsuario['nombreUsuario'],
+        $datosUsuario['apellidoUsuario'],
+        $datosUsuario['calleUsuario'] ?? null,
+        $datosUsuario['numeroPuertaUsuario'] ?? null,
+        $datosUsuario['numeroApartamentoUsuario'] ?? null,
+        $datosUsuario['emailUsuario'] ?? null,
+        $datosUsuario['telefonoUsuario'] ?? null,
+        $datosUsuario['fechaNacimientoUsuario'] ?? null,
+        'activo',
+        $rol
+    );
+
+    if (!$usuarioController->crear($nuevoUsuario)) {
+        return ['error' => 'No se pudo crear el usuario.'];
+    }
+
+    if (!$inicioController->crear(new InicioDeSesion($datosUsuario['cedulaUsuario'], $passwordParaInicioDeSesion), $passwordYaHasheada)) {
+        $usuarioController->eliminar($datosUsuario['cedulaUsuario']);
+        return ['error' => 'No se pudo crear el inicio de sesión.'];
+    }
+
+    if ($rol === 'administrador') {
+        $adminController = new AdministradorMunicipalController();
+        $ok = $adminController->crear(new AdministradorMunicipal(
+            $datosUsuario['cedulaUsuario'], $datosUsuario['nombreUsuario'], $datosUsuario['apellidoUsuario'],
+            $datosUsuario['calleUsuario'] ?? null, $datosUsuario['numeroPuertaUsuario'] ?? null, $datosUsuario['numeroApartamentoUsuario'] ?? null,
+            $datosUsuario['emailUsuario'] ?? null, $datosUsuario['telefonoUsuario'] ?? null, $datosUsuario['fechaNacimientoUsuario'] ?? null,
+            'activo', $rol,
+            null, $datosUsuario['emailUsuario'] ?? null
+        ));
+    } else {
+        $cargo = cargoOperarioDeCuadrillaSegunRol($rol);
+        $operarioController = new OperarioDeCuadrillaController();
+        $ok = $operarioController->crear(new OperarioDeCuadrilla(
+            $datosUsuario['cedulaUsuario'], $datosUsuario['nombreUsuario'], $datosUsuario['apellidoUsuario'],
+            $datosUsuario['calleUsuario'] ?? null, $datosUsuario['numeroPuertaUsuario'] ?? null, $datosUsuario['numeroApartamentoUsuario'] ?? null,
+            $datosUsuario['emailUsuario'] ?? null, $datosUsuario['telefonoUsuario'] ?? null, $datosUsuario['fechaNacimientoUsuario'] ?? null,
+            'activo', $rol,
+            null, 'activo', $cargo, null, null, null, null, null
+        ));
+    }
+
+    if (!$ok) {
+        $inicioController->eliminar($datosUsuario['cedulaUsuario']);
+        $usuarioController->eliminar($datosUsuario['cedulaUsuario']);
+        return ['error' => 'No se pudo crear la ficha de ' . ($rol === 'administrador' ? 'administrador' : 'operario') . '.'];
+    }
+
+    return ['cedulaUsuario' => $datosUsuario['cedulaUsuario']];
+}
+
+// Alta directa de un funcionario desde el panel administrador.
+if ($recurso === 'crearFuncionario') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'crearFuncionario solo acepta POST']);
+        exit;
+    }
+
+    exigirSesion();
+    if (($_SESSION['rolUsuario'] ?? null) !== 'administrador') {
+        http_response_code(403);
+        echo json_encode(['error' => 'Solo un administrador puede crear funcionarios.']);
+        exit;
+    }
+
+    $rol = $datos['rolUsuario'] ?? '';
+    if (!in_array($rol, ['administrador', 'chofer', 'jefeDeCuadrilla', 'operarioDeCuadrilla'], true)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Rol inválido.']);
+        exit;
+    }
+
+    $faltantes = array_filter(['cedulaUsuario', 'nombreUsuario', 'apellidoUsuario'], fn($c) => empty($datos[$c] ?? null));
+    if ($faltantes || empty($datos['contraseniaNueva'] ?? null)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Faltan campos obligatorios (cédula, nombre, apellido o contraseña).']);
+        exit;
+    }
+
+    $resultado = crearPersonaConRol($datos, $rol, $datos['contraseniaNueva'], false);
+
+    if (isset($resultado['error'])) {
+        http_response_code(400);
+        echo json_encode($resultado);
+        exit;
+    }
+
+    echo json_encode(['exito' => true, 'cedulaUsuario' => $resultado['cedulaUsuario']]);
+    exit;
+}
+
+// Aprueba una solicitud pública: crea la persona con la contraseña ya hasheada.
+if ($recurso === 'aprobarSolicitud') {
+    if ($metodo !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'aprobarSolicitud solo acepta POST']);
+        exit;
+    }
+
+    exigirSesion();
+    if (($_SESSION['rolUsuario'] ?? null) !== 'administrador') {
+        http_response_code(403);
+        echo json_encode(['error' => 'Solo un administrador puede aprobar solicitudes.']);
+        exit;
+    }
+
+    $rol = $datos['rolUsuario'] ?? '';
+    if (!in_array($rol, ['administrador', 'chofer', 'jefeDeCuadrilla', 'operarioDeCuadrilla'], true)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Rol inválido.']);
+        exit;
+    }
+
+    $idSolicitud = $datos['idSolicitud'] ?? null;
+    if (!$idSolicitud) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Falta idSolicitud.']);
+        exit;
+    }
+
+    $solicitudController = new SolicitudDeUsuarioController();
+    $solicitud = $solicitudController->obtenerPorId($idSolicitud);
+
+    if ($solicitud === false) {
+        http_response_code(404);
+        echo json_encode(['error' => 'No se encontró esa solicitud.']);
+        exit;
+    }
+
+    // La dirección de la solicitud viene en un solo campo; se guarda entera en calleUsuario.
+    $datosUsuario = [
+        'cedulaUsuario' => $solicitud['cedulaUsuario'],
+        'nombreUsuario' => $solicitud['nombreUsuario'],
+        'apellidoUsuario' => $solicitud['apellidoUsuario'],
+        'calleUsuario' => $solicitud['direccionCompletaUsuario'] ?? null,
+        'emailUsuario' => $solicitud['emailUsuario'] ?? null,
+        'telefonoUsuario' => $solicitud['telefonoUsuario'] ?? null,
+        'fechaNacimientoUsuario' => $solicitud['fechaNacimientoUsuario'] ?? null,
+    ];
+
+    $resultado = crearPersonaConRol($datosUsuario, $rol, $solicitud['contraseniaSolicitud'], true);
+
+    if (isset($resultado['error'])) {
+        http_response_code(400);
+        echo json_encode($resultado);
+        exit;
+    }
+
+    $solicitudController->eliminar($idSolicitud);
+
+    echo json_encode(['exito' => true, 'cedulaUsuario' => $resultado['cedulaUsuario']]);
+    exit;
+}
+
+// Un usuario logueado puede modificar su propia fila de "usuario" (email/teléfono) sin ser administrador.
+$esAutoedicionDeCuenta = ($recurso === 'usuario' && $metodo === 'PUT' && ($datos['cedulaUsuario'] ?? null) !== null && ($datos['cedulaUsuario'] ?? null) === ($_SESSION['cedulaUsuario'] ?? null));
+
+if (!$esRegistroPublico && !$esAutoedicionDeCuenta) {
+    exigirRolAdministradorSiEscribe($metodo);
+}
+
+if (!$recurso || !isset($recursos[$recurso])) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Recurso no encontrado. Recursos disponibles: ' . implode(', ', array_keys($recursos))]);
+    exit;
+}
+
+$config = $recursos[$recurso];
+$controllerClass = $config['controller'];
+$modeloClass = $config['modelo'];
+$controller = new $controllerClass();
+
+if ($esAutoedicionDeCuenta) {
+    $filaActualUsuario = $controller->obtenerPorId($datos['cedulaUsuario']);
+    if ($filaActualUsuario === false || !soloCambianCamposPermitidos($filaActualUsuario, $datos, ['emailUsuario', 'telefonoUsuario'])) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Desde tu cuenta solo podés cambiar email y teléfono.']);
+        exit;
+    }
+}
+
+try {
+    switch ($metodo) {
+        case 'GET':
+            if ($id !== null) {
+                $resultado = $controller->obtenerPorId($id);
+
+                if ($resultado === false) {
+                    http_response_code(404);
+                    echo json_encode(['error' => 'No se encontró un registro con ese id']);
+                    break;
+                }
+            } else {
+                $resultado = $controller->obtenerTodos();
+            }
+
+            echo json_encode($resultado);
+            break;
+
+        case 'POST':
+            $faltantes = validarCamposObligatorios($datos, $config['obligatoriosCrear'] ?? []);
+            if (!empty($faltantes)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Faltan campos obligatorios: ' . implode(', ', $faltantes)]);
+                break;
+            }
+
+            $args = [];
+            foreach ($config['campos'] as $campo) {
+                $args[] = $datos[$campo] ?? null;
+            }
+            $objeto = new $modeloClass(...$args);
+            $ok = $controller->crear($objeto);
+            echo json_encode(['exito' => (bool) $ok]);
+            break;
+
+        case 'PUT':
+            $faltantes = validarCamposObligatorios($datos, $config['obligatoriosModificar'] ?? []);
+            if (!empty($faltantes)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Faltan campos obligatorios: ' . implode(', ', $faltantes)]);
+                break;
+            }
+
+            $args = [];
+            foreach ($config['campos'] as $campo) {
+                $args[] = $datos[$campo] ?? null;
+            }
+            $objeto = new $modeloClass(...$args);
+            $ok = $controller->modificar($objeto);
+            echo json_encode(['exito' => (bool) $ok]);
+            break;
+
+        case 'DELETE':
+            if ($id === null) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Falta el parametro id']);
+                break;
+            }
+            $ok = $controller->eliminar($id);
+            echo json_encode(['exito' => (bool) $ok]);
+            break;
+
+        default:
+            http_response_code(405);
+            echo json_encode(['error' => 'Metodo no soportado']);
+    }
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
+}

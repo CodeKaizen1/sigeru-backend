@@ -1,0 +1,3 @@
+# Ítem 12 de la auditoría: las credenciales reales de la base viven en
+# .env, no en el código. Este archivo nunca se sube al repositorio.
+.env
