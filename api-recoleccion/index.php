@@ -173,6 +173,11 @@ try {
             echo json_encode(['error' => 'Metodo no soportado']);
     }
 } catch (Throwable $e) {
+    // El mensaje real (puede incluir nombres de tabla/columna o fragmentos
+    // de la consulta) queda en el log del servidor; al cliente se le
+    // devuelve uno generico para no exponer la estructura interna de la
+    // base -- ver auditoria de seguridad.
+    error_log('Error interno en api-recoleccion: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['error' => 'Ocurrio un error interno. Intenta de nuevo mas tarde.']);
 }
