@@ -1,7 +1,7 @@
-# Imagen para correr SiGeRU completo (las 3 APIs + los 3 frontends) tal
-# como corre hoy en XAMPP: un solo Apache sirviendo toda la carpeta como
-# DocumentRoot, así las 3 APIs comparten la misma sesión de PHP sin
-# necesitar nada especial.
+# Imagen para correr las 3 APIs de SiGeRU (api-usuarios, api-gestion,
+# api-recoleccion) tal como corren hoy en XAMPP: un solo Apache sirviendo
+# toda la carpeta como DocumentRoot, asi las 3 APIs comparten la misma
+# sesion de PHP sin necesitar nada especial.
 FROM php:8.2-apache
 
 RUN docker-php-ext-install pdo_mysql

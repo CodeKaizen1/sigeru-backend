@@ -1,9 +1,12 @@
-# Levanta SiGeRU completo con "docker compose up":
-#   - web:  Apache+PHP en http://localhost:8080, sirviendo todo este directorio
-#           (las 3 APIs + los 3 frontends), igual que XAMPP hoy.
+# Levanta sigeru-backend con "docker compose up":
+#   - web:  Apache+PHP en http://localhost:8080, sirviendo las 3 APIs
+#           (las mismas rutas que hoy en XAMPP).
 #   - db:   MySQL 8 con 01_code.sql ya cargado la primera vez que se crea el volumen.
 #
-# La primera vez, o después de "docker compose down -v", hace falta un
+# Los 3 frontends (landing, frontend-usuarios, backoffice) viven en el
+# repo separado sigeru-frontend, con su propio Docker (ver ese repo).
+#
+# La primera vez, o despues de "docker compose down -v", hace falta un
 # administrador para poder aprobar solicitudes/entrar al panel - ver
 # claude/plan_pasos_correccion.md (quinta vuelta) para el script de alta.
 
