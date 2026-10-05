@@ -3,7 +3,7 @@
 # uno por uno, en procesos de PHP separados (cada API declara las mismas
 # funciones globales en Utilidades.php, así que no pueden convivir en un
 # mismo proceso). Necesita las 3 bases .env apuntando a una base con el
-# esquema de code.sql ya cargado.
+# esquema de 01_code.sql ya cargado.
 
 set -e
 cd "$(dirname "$0")"
