@@ -14,11 +14,11 @@ class ContenedorController
 
     public function crear($contenedor)
     {
-        $sql = "INSERT INTO contenedor (idContenedor, ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO contenedor (idContenedor, ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$contenedor->getIdContenedor(), $contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor()]);
+        return $stmt->execute([$contenedor->getIdContenedor(), $contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor()]);
     }
 
     public function obtenerTodos()
@@ -43,11 +43,11 @@ class ContenedorController
 
     public function modificar($contenedor)
     {
-        $sql = "UPDATE contenedor SET ubicacionContenedor = ?, estadoContenedor = ?, capacidadContenedor = ?, tipoResiduoContenedor = ? WHERE idContenedor = ?";
+        $sql = "UPDATE contenedor SET ubicacionContenedor = ?, estadoContenedor = ?, capacidadContenedor = ?, tipoResiduoContenedor = ?, latitudContenedor = ?, longitudContenedor = ? WHERE idContenedor = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getIdContenedor()]);
+        return $stmt->execute([$contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor(), $contenedor->getIdContenedor()]);
     }
 
     public function eliminar($idContenedor)

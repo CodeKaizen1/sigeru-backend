@@ -45,7 +45,9 @@ $recursos = [
     'contenedor' => [
         'controller' => 'ContenedorController',
         'modelo' => 'Contenedor',
-        'campos' => ['idContenedor', 'ubicacionContenedor', 'estadoContenedor', 'capacidadContenedor', 'tipoResiduoContenedor'],
+        // latitudContenedor/longitudContenedor son opcionales (mapa interactivo,
+        // entrega final) -- el constructor de Contenedor ya las acepta null.
+        'campos' => ['idContenedor', 'ubicacionContenedor', 'estadoContenedor', 'capacidadContenedor', 'tipoResiduoContenedor', 'latitudContenedor', 'longitudContenedor'],
         'obligatoriosModificar' => ['idContenedor'],
     ],
     'instalacion' => [

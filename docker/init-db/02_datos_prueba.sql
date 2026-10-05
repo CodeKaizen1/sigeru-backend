@@ -178,24 +178,24 @@ INSERT INTO maquinaria (tipoDeMaquinaria, estadoMaquinaria, disponibilidadMaquin
 --    (sin ubicación todavía, ítem 8+10 del backlog)
 -- ------------------------------------------------------------
 
-INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES
-('18 de Julio 1234, Centro', 'disponible', 1100.00, 'General');
+INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES
+('18 de Julio 1234, Centro', 'disponible', 1100.00, 'General', -34.90580000, -56.19130000);
 SET @cont1 := LAST_INSERT_ID();
 
-INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES
-('Bulevar España 2650, Pocitos', 'lleno', 1100.00, 'Reciclable');
+INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES
+('Bulevar España 2650, Pocitos', 'lleno', 1100.00, 'Reciclable', -34.91270000, -56.14890000);
 SET @cont2 := LAST_INSERT_ID();
 
-INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES
-('Rambla República de México 4500, Malvín', 'dañado', 800.00, 'General');
+INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES
+('Rambla República de México 4500, Malvín', 'dañado', 800.00, 'General', -34.89750000, -56.12150000);
 SET @cont3 := LAST_INSERT_ID();
 
-INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES
-('Av. Italia 3200, Buceo', 'disponible', 1100.00, 'Orgánico');
+INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES
+('Av. Italia 3200, Buceo', 'disponible', 1100.00, 'Orgánico', -34.90230000, -56.13720000);
 SET @cont4 := LAST_INSERT_ID();
 
-INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES
-('Camino Carrasco 6100, Carrasco', 'disponible', 1100.00, 'General');
+INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor) VALUES
+('Camino Carrasco 6100, Carrasco', 'disponible', 1100.00, 'General', -34.88050000, -56.05750000);
 SET @cont5 := LAST_INSERT_ID();
 
 INSERT INTO contenedor (ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor) VALUES

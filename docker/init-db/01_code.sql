@@ -405,3 +405,19 @@ CREATE TABLE passwordReset (
 --   la API real, ese campo del frontend debería calcularse a partir de
 --   esa relación en vez de guardarse aparte.
 -- ------------------------------------------------------------
+
+-- ------------------------------------------------------------
+-- 5. Mapa interactivo (05/10/2026) — entrega final.
+-- ------------------------------------------------------------
+-- contenedor necesita coordenadas propias para poder mostrarse en el
+-- mapa (Leaflet + OpenStreetMap, sin API key). "instalacion" ya tenía
+-- latitudInstalacion/longitudInstalacion sin usar desde la 2da entrega;
+-- "contenedor" no tenía ninguna columna de coordenadas todavía, solo
+-- ubicacionContenedor (texto libre). Se agrega con ALTER TABLE porque
+-- la tabla ya existe más arriba (mismo motivo que las ALTER TABLE de la
+-- sección de cuadrillas). Ambas columnas quedan NULL-ables: un
+-- contenedor sin coordenadas cargadas simplemente no aparece en el
+-- mapa, no rompe nada del resto del CRUD.
+ALTER TABLE contenedor
+    ADD COLUMN latitudContenedor DECIMAL(10,8) NULL,
+    ADD COLUMN longitudContenedor DECIMAL(11,8) NULL;

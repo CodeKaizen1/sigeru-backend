@@ -6,14 +6,20 @@ class Contenedor
     private $estadoContenedor;
     private $capacidadContenedor;
     private $tipoResiduoContenedor;
+    // Coordenadas para el mapa interactivo (entrega final) -- NULL-ables,
+    // un contenedor sin coordenadas cargadas simplemente no aparece ahi.
+    private $latitudContenedor;
+    private $longitudContenedor;
 
-    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor)
+    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor, $latitudContenedor = null, $longitudContenedor = null)
     {
         $this->idContenedor = $idContenedor;
         $this->ubicacionContenedor = $ubicacionContenedor;
         $this->estadoContenedor = $estadoContenedor;
         $this->capacidadContenedor = $capacidadContenedor;
         $this->tipoResiduoContenedor = $tipoResiduoContenedor;
+        $this->latitudContenedor = $latitudContenedor;
+        $this->longitudContenedor = $longitudContenedor;
     }
 
     public function getIdContenedor()
@@ -64,6 +70,26 @@ class Contenedor
     public function setTipoResiduoContenedor($tipoResiduoContenedor)
     {
         $this->tipoResiduoContenedor = $tipoResiduoContenedor;
+    }
+
+    public function getLatitudContenedor()
+    {
+        return $this->latitudContenedor;
+    }
+
+    public function setLatitudContenedor($latitudContenedor)
+    {
+        $this->latitudContenedor = $latitudContenedor;
+    }
+
+    public function getLongitudContenedor()
+    {
+        return $this->longitudContenedor;
+    }
+
+    public function setLongitudContenedor($longitudContenedor)
+    {
+        $this->longitudContenedor = $longitudContenedor;
     }
 }
 ?>
