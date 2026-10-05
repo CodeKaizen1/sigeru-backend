@@ -160,10 +160,32 @@ if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !
     }
 
     $contenedorControllerPermiso = new ContenedorController();
-    if ($contenedorControllerPermiso->obtenerPorId($idContenedorDeclarado) === false) {
+    $contenedorDeclarado = $contenedorControllerPermiso->obtenerPorId($idContenedorDeclarado);
+    if ($contenedorDeclarado === false) {
         http_response_code(400);
         echo json_encode(['error' => 'El contenedor indicado no existe']);
         exit;
+    }
+
+    // zonaIncidencia no se toma de lo que mande el cliente: se fuerza la
+    // ubicacion real del contenedor guardada en la base. El reporte publico
+    // no exige sesion, asi que sin esto cualquiera podia mandar HTML/texto
+    // arbitrario ahi (ver auditoria de seguridad, XSS del buscador publico
+    // de incidencias en sigeru-frontend/landing).
+    $datos['zonaIncidencia'] = $contenedorDeclarado['ubicacionContenedor'] ?? null;
+
+    // tipoIncidencia se valida contra la misma lista fija que usa el <select>
+    // del formulario publico (TIPOS_INCIDENCIA en landing/js/app.js) -- antes
+    // solo se validaba del lado del JS, y el endpoint acepta POST sin sesion.
+    $tiposIncidenciaPermitidos = [
+        'Contenedor desbordado',
+        'Contenedor dañado',
+        'Contenedor prendido fuego',
+        'Residuos fuera de lugar',
+        'Otra situación',
+    ];
+    if (!in_array($datos['tipoIncidencia'] ?? null, $tiposIncidenciaPermitidos, true)) {
+        $datos['tipoIncidencia'] = 'Otra situación';
     }
 }
 
