@@ -421,3 +421,15 @@ CREATE TABLE passwordReset (
 ALTER TABLE contenedor
     ADD COLUMN latitudContenedor DECIMAL(10,8) NULL,
     ADD COLUMN longitudContenedor DECIMAL(11,8) NULL;
+
+-- ------------------------------------------------------------
+-- 6. Índice de coordenadas (05/10/2026) — entrega final.
+-- ------------------------------------------------------------
+-- Con los ~11.130 contenedores oficiales de la IMM cargados (sección 8 de
+-- 02_datos_prueba.sql), el mapa ya no pide obtenerTodos(): pide solo los
+-- contenedores dentro del viewport actual (WHERE latitudContenedor BETWEEN
+-- ... AND longitudContenedor BETWEEN ...). Sin índice, esa consulta es un
+-- table scan completo en cada movimiento del mapa; con 11 mil filas ya se
+-- nota. El índice compuesto cubre ambas columnas a la vez.
+ALTER TABLE contenedor
+    ADD INDEX idx_contenedor_coordenadas (latitudContenedor, longitudContenedor);
