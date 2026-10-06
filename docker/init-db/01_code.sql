@@ -433,3 +433,15 @@ ALTER TABLE contenedor
 -- nota. El índice compuesto cubre ambas columnas a la vez.
 ALTER TABLE contenedor
     ADD INDEX idx_contenedor_coordenadas (latitudContenedor, longitudContenedor);
+
+-- ------------------------------------------------------------
+-- 9. Barrio y municipio de contenedores (06/10/2026) — entrega final.
+-- ------------------------------------------------------------
+-- Los contenedores oficiales de la IMM (seccion 8 de 02_datos_prueba.sql)
+-- solo traian circuito/municipio como codigo, sin direccion de calle ni
+-- barrio. Se agregan estas 2 columnas para poder mostrar algo util en el
+-- panel de admin (antes "Barrio/zona" quedaba vacio para contenedores).
+-- NULL-ables: un contenedor creado a mano desde el panel puede no tenerlos.
+ALTER TABLE contenedor
+    ADD COLUMN zonaContenedor VARCHAR(100) NULL,
+    ADD COLUMN municipioContenedor VARCHAR(20) NULL;

@@ -10,8 +10,13 @@ class Contenedor
     // un contenedor sin coordenadas cargadas simplemente no aparece ahi.
     private $latitudContenedor;
     private $longitudContenedor;
+    // Barrio y municipio (entrega final, enriquecimiento de los contenedores
+    // oficiales IMM) -- tambien NULL-ables: un contenedor creado a mano desde
+    // el panel de admin puede no tenerlos.
+    private $zonaContenedor;
+    private $municipioContenedor;
 
-    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor, $latitudContenedor = null, $longitudContenedor = null)
+    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor, $latitudContenedor = null, $longitudContenedor = null, $zonaContenedor = null, $municipioContenedor = null)
     {
         $this->idContenedor = $idContenedor;
         $this->ubicacionContenedor = $ubicacionContenedor;
@@ -20,6 +25,8 @@ class Contenedor
         $this->tipoResiduoContenedor = $tipoResiduoContenedor;
         $this->latitudContenedor = $latitudContenedor;
         $this->longitudContenedor = $longitudContenedor;
+        $this->zonaContenedor = $zonaContenedor;
+        $this->municipioContenedor = $municipioContenedor;
     }
 
     public function getIdContenedor()
@@ -90,6 +97,26 @@ class Contenedor
     public function setLongitudContenedor($longitudContenedor)
     {
         $this->longitudContenedor = $longitudContenedor;
+    }
+
+    public function getZonaContenedor()
+    {
+        return $this->zonaContenedor;
+    }
+
+    public function setZonaContenedor($zonaContenedor)
+    {
+        $this->zonaContenedor = $zonaContenedor;
+    }
+
+    public function getMunicipioContenedor()
+    {
+        return $this->municipioContenedor;
+    }
+
+    public function setMunicipioContenedor($municipioContenedor)
+    {
+        $this->municipioContenedor = $municipioContenedor;
     }
 }
 ?>
