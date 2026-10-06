@@ -1,0 +1,4 @@
+# Contraseña real de MySQL root para "docker compose up" (ítem 11 de
+# seguridad, 06/10/2026). Ver .env.example para la plantilla - nunca se
+# sube al repositorio.
+.env

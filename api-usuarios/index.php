@@ -46,6 +46,7 @@ require_once "Application/Controller/OperarioDeInstalacionController.php";
 require_once "Application/Controller/InicioDeSesion.php";
 require_once "Application/Controller/SolicitudDeUsuarioController.php";
 require_once "Application/Controller/PasswordResetController.php";
+require_once "Application/Controller/IntentoLoginFallidoController.php";
 require_once "Application/Configuration/Mailer.php";
 
 $recursos = [
@@ -119,20 +120,40 @@ if ($recurso === 'login') {
         exit;
     }
 
+    // Rate limiting del login (ítem 11 de seguridad, 06/10/2026): 5 intentos
+    // fallidos en los últimos 15 minutos bloquean el login para ESE email (no
+    // la IP ni la cuenta en la base) -- se destraba solo con el tiempo, a
+    // medida que esos intentos van saliendo de la ventana de 15 minutos. No
+    // confirma si el email existe (mismo criterio que recuperarPassword).
+    $intentosController = new IntentoLoginFallidoController();
+    $limiteIntentosLogin = 5;
+    $ventanaMinutosLogin = 15;
+
+    if ($intentosController->contarFallidosRecientes($email, $ventanaMinutosLogin) >= $limiteIntentosLogin) {
+        http_response_code(429);
+        echo json_encode(['error' => 'Demasiados intentos fallidos para este correo. Esperá unos minutos y volvé a intentar.']);
+        exit;
+    }
+
     $controllerLogin = new InicioDeSesionController();
     $resultado = $controllerLogin->login($email, $password);
 
     if ($resultado === null) {
+        $intentosController->registrarFallido($email);
         http_response_code(401);
         echo json_encode(['error' => 'Correo o contraseña incorrectos']);
         exit;
     }
 
     if (isset($resultado['inactivo'])) {
+        // La contraseña era correcta -- no cuenta como intento de fuerza bruta.
+        $intentosController->limpiarPorEmail($email);
         http_response_code(403);
         echo json_encode(['error' => 'Tu cuenta todavía no está activa. Consultá con el Administrador.']);
         exit;
     }
+
+    $intentosController->limpiarPorEmail($email);
 
     $_SESSION['cedulaUsuario'] = $resultado['cedulaUsuario'];
     $_SESSION['rolUsuario'] = $resultado['rol'];
@@ -221,6 +242,15 @@ if ($recurso === 'restablecerPassword') {
         exit;
     }
 
+    // Ítem 11 de seguridad: reglas mínimas de contraseña (el frontend ya las
+    // pedía con minlength/pattern, pero nada las exigía del lado del servidor).
+    $faltantesPassword = requisitosContraseniaFaltantes($nuevaPassword);
+    if (!empty($faltantesPassword)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La contraseña debe tener ' . implode(', ', $faltantesPassword) . '.']);
+        exit;
+    }
+
     $resetController = new PasswordResetController();
     $fila = $resetController->buscarPorToken($token);
 
@@ -242,6 +272,19 @@ if ($recurso === 'restablecerPassword') {
 
 // El registro público (alta de solicitudDeUsuario) no requiere sesión.
 $esRegistroPublico = ($recurso === 'solicitudDeUsuario' && $metodo === 'POST');
+
+// Ítem 11 de seguridad: reglas mínimas de contraseña, también para el
+// registro público (el único de los 4 puntos que setean contraseña que no
+// pasa por un bloque "if ($recurso === ...)" propio más abajo).
+if ($esRegistroPublico) {
+    $faltantesPassword = requisitosContraseniaFaltantes($datos['contraseniaSolicitud'] ?? '');
+    if (!empty($faltantesPassword)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La contraseña debe tener ' . implode(', ', $faltantesPassword) . '.']);
+        exit;
+    }
+}
+
 if (!$esRegistroPublico) {
     exigirSesion();
 }
@@ -269,6 +312,14 @@ if ($recurso === 'cambiarPassword') {
     if ($filaActual === false || !password_verify($actual, $filaActual['contraseniaUsuarioInicioDeSesion'])) {
         http_response_code(403);
         echo json_encode(['error' => 'La contraseña actual no es correcta.']);
+        exit;
+    }
+
+    // Ítem 11 de seguridad: reglas mínimas de contraseña.
+    $faltantesPassword = requisitosContraseniaFaltantes($nueva);
+    if (!empty($faltantesPassword)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La contraseña debe tener ' . implode(', ', $faltantesPassword) . '.']);
         exit;
     }
 
@@ -372,6 +423,14 @@ if ($recurso === 'crearFuncionario') {
     if ($faltantes || empty($datos['contraseniaNueva'] ?? null)) {
         http_response_code(400);
         echo json_encode(['error' => 'Faltan campos obligatorios (cédula, nombre, apellido o contraseña).']);
+        exit;
+    }
+
+    // Ítem 11 de seguridad: reglas mínimas de contraseña.
+    $faltantesPassword = requisitosContraseniaFaltantes($datos['contraseniaNueva']);
+    if (!empty($faltantesPassword)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La contraseña debe tener ' . implode(', ', $faltantesPassword) . '.']);
         exit;
     }
 

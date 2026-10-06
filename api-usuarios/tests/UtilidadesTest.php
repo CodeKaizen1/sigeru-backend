@@ -51,4 +51,30 @@ class UtilidadesTest
         MiniTest::afirmar(true, "el administrador puede escribir, no debería haber cortado");
         unset($_SESSION['rolUsuario']);
     }
+
+    public function testRequisitosContraseniaFaltantesConUnaBuena()
+    {
+        MiniTest::afirmarIgual([], requisitosContraseniaFaltantes('ClaveBuena123'), "cumple los 3 requisitos, no debería faltar nada");
+    }
+
+    public function testRequisitosContraseniaFaltantesMuyCorta()
+    {
+        MiniTest::afirmarIgual(['al menos 8 caracteres'], requisitosContraseniaFaltantes('Abc12'), "le faltan caracteres, el resto cumple");
+    }
+
+    public function testRequisitosContraseniaFaltantesSinNumero()
+    {
+        MiniTest::afirmarIgual(['al menos un número'], requisitosContraseniaFaltantes('SoloLetras'), "tiene 8+ y letras, pero no números");
+    }
+
+    public function testRequisitosContraseniaFaltantesSinLetra()
+    {
+        MiniTest::afirmarIgual(['al menos una letra'], requisitosContraseniaFaltantes('12345678'), "tiene 8+ y números, pero no letras");
+    }
+
+    public function testRequisitosContraseniaFaltantesVacia()
+    {
+        $faltantes = requisitosContraseniaFaltantes('');
+        MiniTest::afirmarIgual(['al menos 8 caracteres', 'al menos una letra', 'al menos un número'], $faltantes, "una contraseña vacía no cumple ninguno de los 3");
+    }
 }

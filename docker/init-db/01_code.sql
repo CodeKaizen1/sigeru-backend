@@ -445,3 +445,23 @@ ALTER TABLE contenedor
 ALTER TABLE contenedor
     ADD COLUMN zonaContenedor VARCHAR(100) NULL,
     ADD COLUMN municipioContenedor VARCHAR(20) NULL;
+
+-- ------------------------------------------------------------
+-- 10. Rate limiting de login (06/10/2026) — entrega final.
+-- ------------------------------------------------------------
+-- Antes el endpoint "login" no tenía ningún límite: se podían probar
+-- contraseñas sin parar contra el mismo email. Esta tabla guarda cada
+-- intento de login FALLIDO (usuario/contraseña incorrectos o cuenta
+-- inexistente); el router (index.php) cuenta cuántos hubo para ese email
+-- en los últimos N minutos y bloquea el login con 429 si supera el
+-- límite, sin necesidad de bloquear la cuenta (se destraba solo cuando
+-- esos intentos salen de la ventana de tiempo). No tiene FK a "usuario"
+-- a propósito: también se cuentan intentos contra emails que ni
+-- siquiera existen (alguien probando direcciones al azar), y esos no
+-- tienen fila en "usuario".
+CREATE TABLE intentoLoginFallido (
+    idIntentoLoginFallido INT AUTO_INCREMENT PRIMARY KEY,
+    emailIntentoLoginFallido VARCHAR(150) NOT NULL,
+    fechaIntentoLoginFallido DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_intento_login_email_fecha (emailIntentoLoginFallido, fechaIntentoLoginFallido)
+);

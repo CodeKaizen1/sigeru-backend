@@ -16,12 +16,18 @@ class Conexion
         // se usan los mismos valores de siempre como respaldo (localhost /
         // root / sin contraseña), así nadie se queda sin poder levantar el
         // proyecto - ver .env.example para la plantilla.
+        //
+        // Ítem 11 de seguridad (06/10/2026): cuando esto corre adentro de
+        // Docker, docker-compose.yml le pasa las credenciales al contenedor
+        // como variables de entorno reales (en vez de montar un .env con la
+        // contraseña adentro) - getenv() tiene prioridad sobre el .env de
+        // este archivo, que sigue siendo el único camino para XAMPP.
         $env = self::cargarEnv(__DIR__ . "/.env");
 
-        $this->hostConexion = $env["DB_HOST"] ?? "localhost";
-        $this->dbnameConexion = $env["DB_NAME"] ?? "SiGeRU";
-        $this->usuarioConexion = $env["DB_USER"] ?? "root";
-        $this->passwordConexion = $env["DB_PASS"] ?? "";
+        $this->hostConexion = getenv("DB_HOST") ?: ($env["DB_HOST"] ?? "localhost");
+        $this->dbnameConexion = getenv("DB_NAME") ?: ($env["DB_NAME"] ?? "SiGeRU");
+        $this->usuarioConexion = getenv("DB_USER") ?: ($env["DB_USER"] ?? "root");
+        $this->passwordConexion = getenv("DB_PASS") ?: ($env["DB_PASS"] ?? "");
     }
 
     // Lee un .env simple (una variable por línea, CLAVE=valor; líneas

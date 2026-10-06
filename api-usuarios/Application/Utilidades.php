@@ -50,3 +50,28 @@ function soloCambianCamposPermitidos($actual, $entrante, $camposPermitidos)
     }
     return true;
 }
+
+// Requisitos mínimos de contraseña (ítem 11 de seguridad, 06/10/2026). El
+// frontend ya los pedía con minlength/pattern en los formularios de
+// registro, cambio de contraseña y alta de funcionario, pero nada los
+// exigía del lado del servidor -- cualquiera podía mandar una contraseña
+// de 1 carácter directo a la API con curl/devtools, sin pasar por esos
+// formularios. Devuelve la lista de requisitos que NO cumple $password
+// (vacía si está todo bien), mismo estilo que validarCamposObligatorios().
+function requisitosContraseniaFaltantes($password)
+{
+    $password = (string) $password;
+    $faltantes = [];
+
+    if (strlen($password) < 8) {
+        $faltantes[] = 'al menos 8 caracteres';
+    }
+    if (!preg_match('/[A-Za-z]/', $password)) {
+        $faltantes[] = 'al menos una letra';
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        $faltantes[] = 'al menos un número';
+    }
+
+    return $faltantes;
+}

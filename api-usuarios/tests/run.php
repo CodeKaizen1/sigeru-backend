@@ -6,10 +6,12 @@
 require_once __DIR__ . "/MiniTest.php";
 require_once __DIR__ . "/UtilidadesTest.php";
 require_once __DIR__ . "/InicioDeSesionControllerTest.php";
+require_once __DIR__ . "/IntentoLoginFallidoControllerTest.php";
 
 session_start();
 
 exit(MiniTest::correr([
     UtilidadesTest::class,
     InicioDeSesionControllerTest::class,
+    IntentoLoginFallidoControllerTest::class,
 ]));

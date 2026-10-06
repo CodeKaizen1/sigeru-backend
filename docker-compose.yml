@@ -9,12 +9,25 @@
 # La primera vez, o despues de "docker compose down -v", hace falta un
 # administrador para poder aprobar solicitudes/entrar al panel - ver
 # claude/plan_pasos_correccion.md (quinta vuelta) para el script de alta.
+#
+# Contraseña de MySQL root (06/10/2026, ítem 11 de seguridad): antes
+# estaba escrita acá abajo directo ("sigeru_docker") y se repetía en los
+# 3 archivos docker/env/*.env que se montaban adentro de cada API -
+# cualquiera que mirara el repo la veía. Ahora sale de MYSQL_ROOT_PASSWORD
+# (ver .env.example en esta misma carpeta: copiá ese archivo a ".env",
+# al lado de este docker-compose.yml, y poné una contraseña real -
+# "docker compose up" la lee sola, no hace falta exportar nada a mano).
+# Los 3 archivos docker/env/*.env ya no existen: "web" recibe las
+# credenciales como variables de entorno reales (ver más abajo), y
+# Conexion.php (las 3 APIs) las lee con getenv() antes que de un .env -
+# el .env propio de cada API (Application/Configuration/.env) sigue
+# existiendo igual que siempre, para cuando el proyecto corre en XAMPP.
 
 services:
   db:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: sigeru_docker
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Copiá .env.example a .env (en esta carpeta) y definí una contraseña}
       MYSQL_DATABASE: SiGeRU
     volumes:
       - ./docker/init-db:/docker-entrypoint-initdb.d:ro
@@ -30,13 +43,15 @@ services:
       - db
     ports:
       - "8080:80"
+    environment:
+      # Mismas credenciales que "db" de arriba - Conexion.php (las 3 APIs)
+      # las toma con getenv() en vez de un .env montado por volumen.
+      DB_HOST: db
+      DB_NAME: SiGeRU
+      DB_USER: root
+      DB_PASS: ${MYSQL_ROOT_PASSWORD:?Copiá .env.example a .env (en esta carpeta) y definí una contraseña}
     volumes:
       - .:/var/www/html
-      # Estos 3 .env solo se usan adentro de Docker (apuntan a DB_HOST=db);
-      # los .env reales de cada API (para XAMPP) no se tocan.
-      - ./docker/env/api-usuarios.env:/var/www/html/api-usuarios/Application/Configuration/.env:ro
-      - ./docker/env/api-gestion.env:/var/www/html/api-gestion/configuration/.env:ro
-      - ./docker/env/api-recoleccion.env:/var/www/html/api-recoleccion/Configuration/.env:ro
 
 volumes:
   db-datos:

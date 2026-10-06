@@ -8,13 +8,17 @@ class Conexion
 
     public function __construct()
     {
-        // Credenciales desde .env; si no existe, usa valores por defecto de desarrollo local.
+        // Credenciales desde .env; si no existe, usa valores por defecto de
+        // desarrollo local. En Docker, docker-compose.yml pasa las
+        // credenciales como variables de entorno reales en vez de un .env
+        // montado (ítem 11 de seguridad, 06/10/2026) - getenv() tiene
+        // prioridad sobre el .env, que sigue siendo el único camino para XAMPP.
         $env = self::cargarEnv(__DIR__ . "/.env");
 
-        $this->hostConexion = $env["DB_HOST"] ?? "localhost";
-        $this->dbnameConexion = $env["DB_NAME"] ?? "SiGeRU";
-        $this->usuarioConexion = $env["DB_USER"] ?? "root";
-        $this->passwordConexion = $env["DB_PASS"] ?? "";
+        $this->hostConexion = getenv("DB_HOST") ?: ($env["DB_HOST"] ?? "localhost");
+        $this->dbnameConexion = getenv("DB_NAME") ?: ($env["DB_NAME"] ?? "SiGeRU");
+        $this->usuarioConexion = getenv("DB_USER") ?: ($env["DB_USER"] ?? "root");
+        $this->passwordConexion = getenv("DB_PASS") ?: ($env["DB_PASS"] ?? "");
     }
 
     // Lee un .env simple (una variable por línea, CLAVE=valor; ignora líneas vacías o con #).
