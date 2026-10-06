@@ -18,7 +18,12 @@ class TipoResiduoController
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$tipoResiduo->getNombreTipoResiduo(), $tipoResiduo->getDescripcionTipoResiduo(), $tipoResiduo->getEsReciclableTipoResiduo()]);
+        // (int) acá es necesario: PDO con parámetros bindeados por posición convierte
+        // un bool false a '' (string vacío) antes de mandarlo a MySQL, y la columna es
+        // BOOLEAN (TINYINT) -- eso tiraba "Incorrect integer value: ''" al intentar
+        // guardar un tipo de residuo marcado como NO reciclable (hallado al escribir
+        // los tests unitarios de este controller, Fase 5, 06/10/2026).
+        return $stmt->execute([$tipoResiduo->getNombreTipoResiduo(), $tipoResiduo->getDescripcionTipoResiduo(), (int) $tipoResiduo->getEsReciclableTipoResiduo()]);
     }
 
     public function obtenerTodos()
@@ -44,7 +49,9 @@ class TipoResiduoController
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$tipoResiduo->getNombreTipoResiduo(), $tipoResiduo->getDescripcionTipoResiduo(), $tipoResiduo->getEsReciclableTipoResiduo(), $tipoResiduo->getIdTipoResiduo()]);
+        // (int) acá por el mismo motivo que en crear(): evita que un bool false se
+        // bindee como '' y rompa la columna BOOLEAN.
+        return $stmt->execute([$tipoResiduo->getNombreTipoResiduo(), $tipoResiduo->getDescripcionTipoResiduo(), (int) $tipoResiduo->getEsReciclableTipoResiduo(), $tipoResiduo->getIdTipoResiduo()]);
     }
 
     public function eliminar($idTipoResiduo)
