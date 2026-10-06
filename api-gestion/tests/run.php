@@ -12,6 +12,7 @@ require_once __DIR__ . "/VertederoControllerTest.php";
 require_once __DIR__ . "/MaquinariaControllerTest.php";
 require_once __DIR__ . "/ResiduoControllerTest.php";
 require_once __DIR__ . "/TipoResiduoControllerTest.php";
+require_once __DIR__ . "/NotificacionControllerTest.php";
 
 session_start();
 
@@ -26,4 +27,5 @@ exit(MiniTest::correr([
     MaquinariaControllerTest::class,
     ResiduoControllerTest::class,
     TipoResiduoControllerTest::class,
+    NotificacionControllerTest::class,
 ]));

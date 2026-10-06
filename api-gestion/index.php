@@ -38,6 +38,7 @@ require_once "application/Controller/MaquinariaController.php";
 require_once "application/Controller/IncidenciaController.php";
 require_once "application/Controller/ResiduoController.php";
 require_once "application/Controller/TipoResiduoController.php";
+require_once "application/Controller/NotificacionController.php";
 
 // Ninguno de estos recursos tiene campos obligatorios propios al crear; todos
 // necesitan su id en "obligatoriosModificar" porque modificar() lo usa en el WHERE.
@@ -192,8 +193,95 @@ if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !
     }
 }
 
-if (!$esReportePublicoDeIncidencia && !$esJefeResolviendoSuIncidencia && !$esJefeCreandoIncidenciaPropia) {
+// Punto 16: un chofer/jefe/operario puede marcar como leídas SUS PROPIAS
+// notificaciones (PUT) sin ser administrador -- el chequeo de que sean
+// realmente suyas (y no las de otra cuadrilla) se hace más abajo, en el
+// bloque propio de "notificacion", antes de llamar a marcarLeidas().
+$esFuncionarioGestionandoNotificaciones = (
+    $recurso === 'notificacion'
+    && in_array($rol, ['chofer', 'jefeDeCuadrilla', 'operarioDeCuadrilla'], true)
+);
+
+if (!$esReportePublicoDeIncidencia && !$esJefeResolviendoSuIncidencia && !$esJefeCreandoIncidenciaPropia && !$esFuncionarioGestionandoNotificaciones) {
     exigirRolAdministradorSiEscribe($metodo);
+}
+
+// "notificacion" no entra en el dispatch genérico de $recursos: GET necesita
+// filtrar por destinatario (admin vs. cuadrilla puntual) y PUT recibe un
+// array de ids a marcar leídos, no los campos de un modelo -- se resuelve acá
+// aparte, antes de llegar al switch genérico, igual que el reporte público de
+// incidencia se resuelve antes del suyo.
+if ($recurso === 'notificacion') {
+    $notificacionController = new NotificacionController();
+
+    try {
+        switch ($metodo) {
+            case 'GET':
+                $destinatario = $_GET['destinatario'] ?? null;
+
+                if ($destinatario === 'admin') {
+                    if ($rol !== 'administrador') {
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Solo el administrador puede ver estas notificaciones.']);
+                        break;
+                    }
+                    echo json_encode($notificacionController->obtenerParaAdmin());
+                } elseif ($destinatario === 'cuadrilla') {
+                    $idCuadrillaPedida = $_GET['idCuadrilla'] ?? null;
+                    if ($idCuadrillaPedida === null || $idCuadrillaPedida === '') {
+                        http_response_code(400);
+                        echo json_encode(['error' => 'Falta idCuadrilla']);
+                        break;
+                    }
+                    // Un chofer/jefe/operario solo puede pedir las notificaciones de
+                    // SU propia cuadrilla, no las de cualquier otra; el admin sí puede.
+                    if ($rol !== 'administrador' && !$notificacionController->cedulaPerteneceACuadrilla($_SESSION['cedulaUsuario'] ?? null, $idCuadrillaPedida)) {
+                        http_response_code(403);
+                        echo json_encode(['error' => 'No pertenecés a esa cuadrilla.']);
+                        break;
+                    }
+                    echo json_encode($notificacionController->obtenerParaCuadrilla($idCuadrillaPedida));
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Falta el parámetro destinatario (admin|cuadrilla)']);
+                }
+                break;
+
+            case 'PUT':
+                $idsAMarcar = $datos['ids'] ?? null;
+                if (!is_array($idsAMarcar) || empty($idsAMarcar)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Falta ids (array)']);
+                    break;
+                }
+
+                // Un no-administrador solo puede marcar como leídas notificaciones
+                // de SU propia cuadrilla (nunca las de otra, ni las de admin).
+                if ($rol !== 'administrador') {
+                    foreach ($idsAMarcar as $idNotifAMarcar) {
+                        $idCuadrillaDeEsa = $notificacionController->idCuadrillaDeNotificacion($idNotifAMarcar);
+                        if ($idCuadrillaDeEsa === null || !$notificacionController->cedulaPerteneceACuadrilla($_SESSION['cedulaUsuario'] ?? null, $idCuadrillaDeEsa)) {
+                            http_response_code(403);
+                            echo json_encode(['error' => 'No podés marcar notificaciones que no son tuyas.']);
+                            exit;
+                        }
+                    }
+                }
+
+                $ok = $notificacionController->marcarLeidas($idsAMarcar);
+                echo json_encode(['exito' => (bool) $ok]);
+                break;
+
+            default:
+                http_response_code(405);
+                echo json_encode(['error' => 'Metodo no soportado']);
+        }
+    } catch (Throwable $e) {
+        error_log('Error interno en api-gestion (notificacion): ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'Ocurrio un error interno. Intenta de nuevo mas tarde.']);
+    }
+    exit;
 }
 
 if (!$recurso || !isset($recursos[$recurso])) {
