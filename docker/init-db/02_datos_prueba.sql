@@ -119,15 +119,15 @@ SET @veh3 := LAST_INSERT_ID();
 -- ------------------------------------------------------------
 
 INSERT INTO ruta (zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta, estadoRuta, horaInicioRealRuta, horaFinRealRuta, estadoAdminRuta) VALUES
-('Ciudad Vieja', 'Circuito Centro: Ciudad Vieja - Peatonal Sarandí - Mercado del Puerto', 'Diaria', '06:00 - 12:00', 'en curso', DATE_SUB(NOW(), INTERVAL 3 HOUR), NULL, 'activa');
+('Ciudad Vieja', 'Circuito oficial B_DU_RM_CL_01 (Ciudad Vieja, Municipio B) - recoleccion de residuos domiciliarios. Datos reales de circuito: Intendencia de Montevideo.', 'Interdiaria', '22:00 - 06:00 (lunes, miercoles y jueves)', 'en curso', DATE_SUB(NOW(), INTERVAL 3 HOUR), NULL, 'activa');
 SET @ruta1 := LAST_INSERT_ID();
 
 INSERT INTO ruta (zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta, estadoRuta, horaInicioRealRuta, horaFinRealRuta, estadoAdminRuta) VALUES
-('Pocitos', 'Circuito Pocitos: Rambla República del Perú - Bulevar España - Av. Brasil', 'Interdiaria', '14:00 - 20:00', 'sin iniciar', NULL, NULL, 'activa');
+('Punta Gorda', 'Circuito oficial E_DU_RM_CL_112 (Punta Gorda, Municipio E) - recoleccion de residuos domiciliarios. Datos reales de circuito: Intendencia de Montevideo.', 'Semanal', '22:00 - 06:00 (miercoles)', 'sin iniciar', NULL, NULL, 'activa');
 SET @ruta2 := LAST_INSERT_ID();
 
 INSERT INTO ruta (zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta, estadoRuta, horaInicioRealRuta, horaFinRealRuta, estadoAdminRuta) VALUES
-('Malvín', 'Circuito Malvín - Buceo: Av. Rivera - Av. Italia - Rambla', 'Semanal', '08:00 - 14:00', 'finalizada', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 18 HOUR), 'activa');
+('Malvin', 'Circuito oficial E_DU_RM_CL_105 (Malvin, Municipio E) - recoleccion de residuos domiciliarios. Datos reales de circuito: Intendencia de Montevideo.', 'Interdiaria', '22:00 - 06:00 (lunes, miercoles y viernes)', 'finalizada', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 18 HOUR), 'activa');
 SET @ruta3 := LAST_INSERT_ID();
 
 -- ------------------------------------------------------------
