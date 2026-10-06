@@ -46,6 +46,7 @@ require_once "Application/Controller/OperarioDeInstalacionController.php";
 require_once "Application/Controller/InicioDeSesion.php";
 require_once "Application/Controller/SolicitudDeUsuarioController.php";
 require_once "Application/Controller/PasswordResetController.php";
+require_once "Application/Configuration/Mailer.php";
 
 $recursos = [
     'usuario' => [
@@ -147,7 +148,16 @@ if ($recurso === 'logout') {
     exit;
 }
 
-// Genera un token de recuperación y lo devuelve directo (no hay mail configurado).
+// Genera un token de recuperación y lo manda por mail (punto 9 de la
+// auditoría: antes se devolvía el token directo en la respuesta JSON y el
+// frontend lo mostraba como link en pantalla -- cualquiera que viera esa
+// respuesta podía resetear la contraseña de otro usuario. Ahora el token
+// nunca sale de acá: se arma el link de reseteo y se manda por SMTP real
+// con Mailer (PHPMailer), la respuesta al cliente es siempre el mismo
+// mensaje genérico exista o no el email, y exista o no haya podido
+// mandarse el mail -- un fallo de SMTP se loguea con error_log() pero no
+// se filtra al cliente, mismo criterio que el punto 10 (mensajes de error
+// genéricos).
 if ($recurso === 'recuperarPassword') {
     if ($metodo !== 'POST') {
         http_response_code(405);
@@ -162,19 +172,36 @@ if ($recurso === 'recuperarPassword') {
         exit;
     }
 
+    $mensajeGenerico = 'Si el email está registrado, en unos minutos vas a recibir un correo con el link para restablecer tu contraseña (revisá también la carpeta de spam).';
+
     $usuarioController = new UsuarioController();
     $usuarioEncontrado = $usuarioController->obtenerPorEmail($email);
 
     // No se confirma si el email existe o no.
     if ($usuarioEncontrado === false) {
-        echo json_encode(['exito' => true, 'mensaje' => 'Si el email está registrado, en breve vas a poder generar un nuevo link de recuperación.']);
+        echo json_encode(['exito' => true, 'mensaje' => $mensajeGenerico]);
         exit;
     }
 
     $resetController = new PasswordResetController();
     $token = $resetController->crear($usuarioEncontrado['cedulaUsuario']);
 
-    echo json_encode(['exito' => true, 'token' => $token]);
+    $mailer = new Mailer();
+    $urlFrontend = $mailer->urlFrontendUsuarios();
+    $linkReseteo = "{$urlFrontend}/restablecer.html?token=" . urlencode($token);
+
+    $nombreUsuario = htmlspecialchars($usuarioEncontrado['nombreUsuario'] ?? '', ENT_QUOTES, 'UTF-8');
+    $cuerpoHtml = "<p>Hola" . ($nombreUsuario !== '' ? " {$nombreUsuario}" : "") . ",</p>"
+        . "<p>Recibimos un pedido para restablecer tu contraseña en SiGeRU. Si fuiste vos, hacé click en el siguiente link (válido por 1 hora):</p>"
+        . "<p><a href=\"{$linkReseteo}\">{$linkReseteo}</a></p>"
+        . "<p>Si no pediste este cambio, podés ignorar este correo -- tu contraseña actual sigue funcionando igual.</p>";
+
+    $enviado = $mailer->enviar($email, 'Restablecer tu contraseña de SiGeRU', $cuerpoHtml);
+    if (!$enviado) {
+        error_log("recuperarPassword: no se pudo enviar el mail de reseteo a {$email} (ver log de Mailer arriba para el detalle)");
+    }
+
+    echo json_encode(['exito' => true, 'mensaje' => $mensajeGenerico]);
     exit;
 }
 
