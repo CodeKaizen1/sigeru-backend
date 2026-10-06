@@ -217,6 +217,19 @@ try {
                     echo json_encode(['error' => 'No se encontró un registro con ese id']);
                     break;
                 }
+            } elseif (
+                $recurso === 'contenedor'
+                && isset($_GET['bboxNorte'], $_GET['bboxSur'], $_GET['bboxEste'], $_GET['bboxOeste'])
+            ) {
+                // Mapa interactivo: con los contenedores oficiales de la IMM
+                // cargados (~11 mil), el mapa pide solo lo que entra en su
+                // viewport actual en vez de obtenerTodos() entero.
+                $resultado = $controller->obtenerEnBoundingBox(
+                    (float) $_GET['bboxNorte'],
+                    (float) $_GET['bboxSur'],
+                    (float) $_GET['bboxEste'],
+                    (float) $_GET['bboxOeste']
+                );
             } else {
                 $resultado = $controller->obtenerTodos();
             }
