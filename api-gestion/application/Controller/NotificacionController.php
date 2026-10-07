@@ -101,7 +101,10 @@ class NotificacionController
     // Si la cédula es chofer, jefe de cuadrilla u operario de esa cuadrilla puntual.
     // Join contra operarioDeCuadrilla porque cuadrilla.idChofer/idJefeCuadrilla
     // guardan idOperarioDeCuadrilla, no la cédula directamente (mismo motivo que
-    // IncidenciaController::idCuadrillaPerteneceAJefe()).
+    // IncidenciaController::idCuadrillaPerteneceAJefe()). Para operarios rasos se
+    // chequea directamente operarioDeCuadrilla.idCuadrilla -- es la misma columna
+    // que usan los datos de prueba y el panel administrador, no la tabla puente
+    // cuadrillaOperario (que ningún dato real llega a poblar).
     public function cedulaPerteneceACuadrilla($cedula, $idCuadrilla)
     {
         if ($cedula === null || $idCuadrilla === null || $idCuadrilla === '') {
@@ -112,9 +115,8 @@ class NotificacionController
                 JOIN operarioDeCuadrilla o ON o.idOperarioDeCuadrilla IN (c.idChofer, c.idJefeCuadrilla)
                 WHERE c.idCuadrilla = ? AND o.cedulaUsuario = ?
                 UNION ALL
-                SELECT COUNT(*) FROM cuadrillaOperario co
-                JOIN operarioDeCuadrilla o ON o.idOperarioDeCuadrilla = co.idOperarioDeCuadrilla
-                WHERE co.idCuadrilla = ? AND o.cedulaUsuario = ?";
+                SELECT COUNT(*) FROM operarioDeCuadrilla o
+                WHERE o.idCuadrilla = ? AND o.cedulaUsuario = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute([$idCuadrilla, $cedula, $idCuadrilla, $cedula]);
 

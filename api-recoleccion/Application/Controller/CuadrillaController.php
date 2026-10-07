@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../../Configuration/Conexion.php";
 require_once __DIR__ . "/../Model/Cuadrilla.php";
-require_once __DIR__ . "/VehiculoController.php";
 
 class CuadrillaController
 {
@@ -13,31 +12,16 @@ class CuadrillaController
         $this->conexion = $db->conectar();
     }
 
-    // Deriva el camión de un chofer buscando en "vehiculo"; cuadrilla.idVehiculo es una columna en desuso.
-    private function derivarIdVehiculo($idChofer)
-    {
-        if ($idChofer === null) {
-            return null;
-        }
-
-        $vehiculoController = new VehiculoController();
-        $vehiculo = $vehiculoController->obtenerPorChofer($idChofer);
-
-        return $vehiculo ? $vehiculo['idVehiculo'] : null;
-    }
-
     public function crear($cuadrilla)
     {
-        $idVehiculo = $this->derivarIdVehiculo($cuadrilla->getIdChofer());
-
-        $sql = "INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla) VALUES (?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$cuadrilla->getNombreCuadrilla(), $cuadrilla->getIdChofer(), $cuadrilla->getIdJefeCuadrilla(), $idVehiculo, $cuadrilla->getIdRuta(), $cuadrilla->getEstadoCuadrilla() ?? 'activa']);
+        return $stmt->execute([$cuadrilla->getNombreCuadrilla(), $cuadrilla->getIdChofer(), $cuadrilla->getIdJefeCuadrilla(), $cuadrilla->getIdRuta(), $cuadrilla->getEstadoCuadrilla() ?? 'activa']);
     }
 
-    // idVehiculo se resuelve con JOIN a vehiculo.idChofer, no desde la columna cuadrilla.idVehiculo.
+    // idVehiculo se resuelve con JOIN a vehiculo.idChofer -- cuadrilla ya no tiene columna propia para esto.
     public function obtenerTodos()
     {
         $sql = "SELECT c.idCuadrilla, c.nombreCuadrilla, c.idChofer, c.idJefeCuadrilla, v.idVehiculo, c.idRuta, c.estadoCuadrilla
@@ -62,13 +46,11 @@ class CuadrillaController
 
     public function modificar($cuadrilla)
     {
-        $idVehiculo = $this->derivarIdVehiculo($cuadrilla->getIdChofer());
-
-        $sql = "UPDATE cuadrilla SET nombreCuadrilla = ?, idChofer = ?, idJefeCuadrilla = ?, idVehiculo = ?, idRuta = ?, estadoCuadrilla = ? WHERE idCuadrilla = ?";
+        $sql = "UPDATE cuadrilla SET nombreCuadrilla = ?, idChofer = ?, idJefeCuadrilla = ?, idRuta = ?, estadoCuadrilla = ? WHERE idCuadrilla = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$cuadrilla->getNombreCuadrilla(), $cuadrilla->getIdChofer(), $cuadrilla->getIdJefeCuadrilla(), $idVehiculo, $cuadrilla->getIdRuta(), $cuadrilla->getEstadoCuadrilla() ?? 'activa', $cuadrilla->getIdCuadrilla()]);
+        return $stmt->execute([$cuadrilla->getNombreCuadrilla(), $cuadrilla->getIdChofer(), $cuadrilla->getIdJefeCuadrilla(), $cuadrilla->getIdRuta(), $cuadrilla->getEstadoCuadrilla() ?? 'activa', $cuadrilla->getIdCuadrilla()]);
     }
 
     public function eliminar($idCuadrilla)

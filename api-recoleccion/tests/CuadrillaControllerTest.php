@@ -4,8 +4,8 @@ require_once __DIR__ . "/../Application/Model/Cuadrilla.php";
 require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de cuadrilla contra la base que apunte el .env de esta carpeta. Los tests
-// dejan idChofer/idJefeCuadrilla/idVehiculo/idRuta en null (son FKs nullable) para no
-// depender de que existan filas en operarioDeCuadrilla/vehiculo/ruta.
+// dejan idChofer/idJefeCuadrilla/idRuta en null (son FKs nullable) para no
+// depender de que existan filas en operarioDeCuadrilla/ruta.
 class CuadrillaControllerTest
 {
     private $conexion;
@@ -34,7 +34,7 @@ class CuadrillaControllerTest
     {
         $nombre = 'Cuadrilla Test ' . uniqid();
         $controller = new CuadrillaController();
-        $controller->crear(new Cuadrilla(null, $nombre, null, null, null, null));
+        $controller->crear(new Cuadrilla(null, $nombre, null, null, null));
 
         $this->idCreado = $this->buscarIdPorNombre($nombre);
         $fila = $controller->obtenerPorId($this->idCreado);
@@ -48,10 +48,10 @@ class CuadrillaControllerTest
     {
         $nombre = 'Cuadrilla Mod ' . uniqid();
         $controller = new CuadrillaController();
-        $controller->crear(new Cuadrilla(null, $nombre, null, null, null, null));
+        $controller->crear(new Cuadrilla(null, $nombre, null, null, null));
         $this->idCreado = $this->buscarIdPorNombre($nombre);
 
-        $controller->modificar(new Cuadrilla($this->idCreado, $nombre, null, null, null, null, 'baja'));
+        $controller->modificar(new Cuadrilla($this->idCreado, $nombre, null, null, null, 'baja'));
         $fila = $controller->obtenerPorId($this->idCreado);
 
         MiniTest::afirmarIgual('baja', $fila['estadoCuadrilla'] ?? null, "el estado debería haber cambiado a baja");
@@ -67,7 +67,7 @@ class CuadrillaControllerTest
     {
         $nombre = 'Cuadrilla Borrar ' . uniqid();
         $controller = new CuadrillaController();
-        $controller->crear(new Cuadrilla(null, $nombre, null, null, null, null));
+        $controller->crear(new Cuadrilla(null, $nombre, null, null, null));
         $id = $this->buscarIdPorNombre($nombre);
 
         $controller->eliminar($id);

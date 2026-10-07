@@ -136,12 +136,12 @@ SET @ruta3 := LAST_INSERT_ID();
 --    a los 2 peones de cada una, que no tienen fila propia acá).
 -- ------------------------------------------------------------
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla) VALUES
-('Cuadrilla Centro', @op_chofer1, @op_jefe1, @veh1, @ruta1, 'activa');
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla) VALUES
+('Cuadrilla Centro', @op_chofer1, @op_jefe1, @ruta1, 'activa');
 SET @cuadrilla1 := LAST_INSERT_ID();
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla) VALUES
-('Cuadrilla Este', @op_chofer2, @op_jefe2, @veh2, @ruta2, 'activa');
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla) VALUES
+('Cuadrilla Este', @op_chofer2, @op_jefe2, @ruta2, 'activa');
 SET @cuadrilla2 := LAST_INSERT_ID();
 
 UPDATE operarioDeCuadrilla SET idCuadrilla = @cuadrilla1

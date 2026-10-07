@@ -55,7 +55,7 @@ $recursos = [
     'cuadrilla' => [
         'controller' => 'CuadrillaController',
         'modelo' => 'Cuadrilla',
-        'campos' => ['idCuadrilla', 'nombreCuadrilla', 'idChofer', 'idJefeCuadrilla', 'idVehiculo', 'idRuta', 'estadoCuadrilla'],
+        'campos' => ['idCuadrilla', 'nombreCuadrilla', 'idChofer', 'idJefeCuadrilla', 'idRuta', 'estadoCuadrilla'],
         'obligatoriosModificar' => ['idCuadrilla'],
     ],
 ];

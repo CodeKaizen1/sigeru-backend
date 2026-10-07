@@ -55,8 +55,11 @@ class NotificacionControllerTest
         $stmt->execute([$nombreCuadrilla]);
         $this->idCuadrilla = (int) $stmt->fetchColumn();
 
+        // Mismo patrón que usan los datos de prueba reales (02_datos_prueba.sql):
+        // el operario raso queda asignado a la cuadrilla directamente en
+        // operarioDeCuadrilla.idCuadrilla, no en la tabla puente cuadrillaOperario.
         $this->conexion->prepare(
-            "INSERT INTO cuadrillaOperario (idCuadrilla, idOperarioDeCuadrilla) VALUES (?, ?)"
+            "UPDATE operarioDeCuadrilla SET idCuadrilla = ? WHERE idOperarioDeCuadrilla = ?"
         )->execute([$this->idCuadrilla, $idOperarioOperario]);
     }
 
@@ -71,7 +74,10 @@ class NotificacionControllerTest
         // La cuadrilla primero: idChofer/idJefeCuadrilla son FK sin ON DELETE
         // CASCADE hacia operarioDeCuadrilla, así que si se borra el usuario
         // antes, el DELETE de operarioDeCuadrilla (cascada) choca con esta fila.
+        // Antes de poder borrarla, hay que soltar operarioDeCuadrilla.idCuadrilla
+        // (fk_operario_cuadrilla no tiene ON DELETE, es RESTRICT por defecto).
         if ($this->idCuadrilla) {
+            $this->conexion->prepare("UPDATE operarioDeCuadrilla SET idCuadrilla = NULL WHERE idCuadrilla = ?")->execute([$this->idCuadrilla]);
             $this->conexion->prepare("DELETE FROM cuadrilla WHERE idCuadrilla = ?")->execute([$this->idCuadrilla]);
         }
 
@@ -188,7 +194,7 @@ class NotificacionControllerTest
 
         MiniTest::afirmar($controller->cedulaPerteneceACuadrilla($this->cedulaChofer, $this->idCuadrilla), "el chofer debería pertenecer a su cuadrilla");
         MiniTest::afirmar($controller->cedulaPerteneceACuadrilla($this->cedulaJefe, $this->idCuadrilla), "el jefe debería pertenecer a su cuadrilla");
-        MiniTest::afirmar($controller->cedulaPerteneceACuadrilla($this->cedulaOperario, $this->idCuadrilla), "el operario raso debería pertenecer a su cuadrilla (vía cuadrillaOperario)");
+        MiniTest::afirmar($controller->cedulaPerteneceACuadrilla($this->cedulaOperario, $this->idCuadrilla), "el operario raso debería pertenecer a su cuadrilla (vía operarioDeCuadrilla.idCuadrilla)");
         MiniTest::afirmar(!$controller->cedulaPerteneceACuadrilla($this->cedulaAjena, $this->idCuadrilla), "una cédula sin relación no debería pertenecer a la cuadrilla");
     }
 }

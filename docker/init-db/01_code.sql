@@ -226,12 +226,10 @@ CREATE TABLE vehiculo (
     -- su camión (se deriva, no se elige aparte).
     --
     -- DECISIÓN YA TOMADA (esta columna es la relación "oficial"):
-    -- cuadrilla.idVehiculo (más abajo) queda REDUNDANTE - no se borró
-    -- todavía porque CuadrillaController.php (del compañero) la lee/escribe
-    -- directo, y cambiar eso es tocar su código, no solo el esquema. Pendiente:
-    -- actualizar CuadrillaController.php para que el camión de una cuadrilla
-    -- se derive siempre de vehiculo.idChofer, y recién ahí sacar
-    -- cuadrilla.idVehiculo del todo.
+    -- la columna cuadrilla.idVehiculo que existía acá quedó REDUNDANTE y
+    -- ya se eliminó (07/10/2026) -- CuadrillaController.php deriva el
+    -- camión de una cuadrilla siempre a partir de este idChofer (JOIN),
+    -- nunca de una columna propia en "cuadrilla".
     idChofer INT NULL,
     FOREIGN KEY (idChofer) REFERENCES operarioDeCuadrilla(idOperarioDeCuadrilla)
 );
@@ -274,7 +272,6 @@ CREATE TABLE cuadrilla (
     nombreCuadrilla VARCHAR(100),
     idChofer INT NULL,
     idJefeCuadrilla INT NULL,
-    idVehiculo INT NULL,
     idRuta INT NULL,
     -- estadoCuadrilla (agregada 01/09/2026): alta/baja administrativa de
     -- la cuadrilla (el admin la puede dar de baja/reactivar desde su
@@ -282,7 +279,6 @@ CREATE TABLE cuadrilla (
     estadoCuadrilla VARCHAR(50) DEFAULT 'activa',
     FOREIGN KEY (idChofer) REFERENCES operarioDeCuadrilla(idOperarioDeCuadrilla),
     FOREIGN KEY (idJefeCuadrilla) REFERENCES operarioDeCuadrilla(idOperarioDeCuadrilla),
-    FOREIGN KEY (idVehiculo) REFERENCES vehiculo(idVehiculo),
     FOREIGN KEY (idRuta) REFERENCES ruta(idRuta)
 );
 
@@ -308,17 +304,17 @@ ALTER TABLE incidencia
 --    cuadrillas en su momento.
 -- ------------------------------------------------------------
 
--- cuadrillaOperario: en el frontend simulado, una cuadrilla tiene VARIOS
--- operarios (peones) además del chofer y el jefe (que ya tienen su
--- columna propia en "cuadrilla"). Es una relación muchos-a-muchos -
--- necesita tabla puente, no una columna.
-CREATE TABLE cuadrillaOperario (
-    idCuadrilla INT NOT NULL,
-    idOperarioDeCuadrilla INT NOT NULL,
-    PRIMARY KEY (idCuadrilla, idOperarioDeCuadrilla),
-    FOREIGN KEY (idCuadrilla) REFERENCES cuadrilla(idCuadrilla) ON DELETE CASCADE,
-    FOREIGN KEY (idOperarioDeCuadrilla) REFERENCES operarioDeCuadrilla(idOperarioDeCuadrilla) ON DELETE CASCADE
-);
+-- (Hasta 07/10/2026 acá existía "cuadrillaOperario", una tabla puente
+-- pensada para que una cuadrilla tenga varios operarios rasos (peones)
+-- además del chofer y el jefe. Se eliminó: ningún dato real la poblaba
+-- -- los operarios rasos ya se enganchan con la cuadrilla directamente
+-- por operarioDeCuadrilla.idCuadrilla, la misma columna que usan el
+-- panel administrador y todos los datos de prueba. Tener las dos formas
+-- de decir "este operario pertenece a esta cuadrilla" a la vez hacía
+-- que NotificacionController::cedulaPerteneceACuadrilla() nunca pudiera
+-- confirmar la pertenencia de un operario raso, porque consultaba
+-- justamente la tabla que nunca se poblaba -- bug de permisos silencioso,
+-- ya corregido.)
 
 -- notificacion: la campanita + banner del ítem 13 del backlog. Hoy vive
 -- 100% en localStorage (ver crearNotificacionSiGeRU() en
@@ -375,13 +371,10 @@ CREATE TABLE passwordReset (
 --
 -- Pendiente nuevo, de la reconciliación del 01/09/2026 (auditoría
 -- completa del frontend simulado contra este esquema):
--- - Camión↔chofer: RESUELTO (Matías, 01/09/2026) - vehiculo.idChofer es
+-- - Camión↔chofer: RESUELTO del todo (07/10/2026) - vehiculo.idChofer es
 --   la relación oficial (ver el comentario junto a esa columna, sección
---   3). Falta un solo paso mecánico: actualizar CuadrillaController.php
---   para que derive el camión desde el chofer en vez de leer
---   cuadrilla.idVehiculo, y recién ahí sacar esa columna de "cuadrilla".
---   No se tocó todavía porque es código del compañero, no solo el
---   esquema - se avisa antes de tocarlo.
+--   3); CuadrillaController.php ya deriva el camión desde el chofer y
+--   cuadrilla.idVehiculo se eliminó del esquema.
 -- - Vocabulario de rol/cargo: el frontend usa
 --   "Chofer"/"Jefe de Cuadrilla"/"Operario de cuadrilla"/etc. en
 --   funcionario.rol; el backend tiene cargoOperarioDeCuadrilla /

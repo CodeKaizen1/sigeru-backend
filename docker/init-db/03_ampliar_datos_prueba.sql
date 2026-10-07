@@ -358,71 +358,63 @@ SET @ruta_prado     := (SELECT idRuta FROM ruta WHERE recorridoRuta LIKE '%C_DU_
 SET @ruta_maronas   := (SELECT idRuta FROM ruta WHERE recorridoRuta LIKE '%F_DU_RM_CL_104%' LIMIT 1);
 SET @ruta_pqerodo   := (SELECT idRuta FROM ruta WHERE recorridoRuta LIKE '%B_DU_RM_CL_07%' LIMIT 1);
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Pocitos',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000003'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000011'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2201'),
     @ruta_pocitos, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Pocitos');
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Cerro',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000004'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000012'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2202'),
     @ruta_cerro, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Cerro');
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Carrasco',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000005'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000013'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2203'),
     @ruta_carrasco, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Carrasco');
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Cerrito',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000006'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000014'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2204'),
     @ruta_cerrito, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Cerrito');
 
 -- Cuadrilla Colón: a propósito con el camión que está "en mantenimiento"
 -- (SCA 2205, chofer 30000007), para poder probar ese caso en el panel.
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Colón',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000007'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000015'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2205'),
     @ruta_colon, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Colón');
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Prado',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000008'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000016'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2206'),
     @ruta_prado, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Prado');
 
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Flor de Maronas',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000009'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000017'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2207'),
     @ruta_maronas, 'activa'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Flor de Maronas');
 
 -- Cuadrilla Parque Rodó: a propósito dada de baja (estadoCuadrilla = 'baja'),
 -- para poder probar el filtro de cuadrillas de baja en el panel.
-INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idVehiculo, idRuta, estadoCuadrilla)
+INSERT INTO cuadrilla (nombreCuadrilla, idChofer, idJefeCuadrilla, idRuta, estadoCuadrilla)
 SELECT 'Cuadrilla Parque Rodó',
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000010'),
     (SELECT idOperarioDeCuadrilla FROM operarioDeCuadrilla WHERE cedulaUsuario = '30000018'),
-    (SELECT idVehiculo FROM vehiculo WHERE matriculaVehiculo = 'SCA 2208'),
     @ruta_pqerodo, 'baja'
 WHERE NOT EXISTS (SELECT 1 FROM cuadrilla WHERE nombreCuadrilla = 'Cuadrilla Parque Rodó');
 

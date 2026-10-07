@@ -5,18 +5,16 @@ class Cuadrilla
     private $nombreCuadrilla;
     private $idChofer;
     private $idJefeCuadrilla;
-    private $idVehiculo;
     private $idRuta;
     // Alta/baja administrativa de la cuadrilla. Default "activa".
     private $estadoCuadrilla;
 
-    public function __construct($idCuadrilla, $nombreCuadrilla, $idChofer, $idJefeCuadrilla, $idVehiculo, $idRuta, $estadoCuadrilla = 'activa')
+    public function __construct($idCuadrilla, $nombreCuadrilla, $idChofer, $idJefeCuadrilla, $idRuta, $estadoCuadrilla = 'activa')
     {
         $this->idCuadrilla = $idCuadrilla;
         $this->nombreCuadrilla = $nombreCuadrilla;
         $this->idChofer = $idChofer;
         $this->idJefeCuadrilla = $idJefeCuadrilla;
-        $this->idVehiculo = $idVehiculo;
         $this->idRuta = $idRuta;
         $this->estadoCuadrilla = $estadoCuadrilla ?? 'activa';
     }
@@ -59,16 +57,6 @@ class Cuadrilla
     public function setIdJefeCuadrilla($idJefeCuadrilla)
     {
         $this->idJefeCuadrilla = $idJefeCuadrilla;
-    }
-
-    public function getIdVehiculo()
-    {
-        return $this->idVehiculo;
-    }
-
-    public function setIdVehiculo($idVehiculo)
-    {
-        $this->idVehiculo = $idVehiculo;
     }
 
     public function getIdRuta()
