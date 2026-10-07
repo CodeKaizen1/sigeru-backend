@@ -308,6 +308,28 @@ try {
                 }
             } elseif (
                 $recurso === 'contenedor'
+                && isset($_GET['accion']) && $_GET['accion'] === 'filtros'
+            ) {
+                // Listas de barrio/municipio para los <select> del buscador del mapa.
+                $resultado = $controller->obtenerFiltrosDisponibles();
+            } elseif (
+                $recurso === 'contenedor'
+                && (
+                    (isset($_GET['direccion']) && $_GET['direccion'] !== '')
+                    || (isset($_GET['barrio']) && $_GET['barrio'] !== '')
+                    || (isset($_GET['municipio']) && $_GET['municipio'] !== '')
+                )
+            ) {
+                // Buscador del mapa: direccion/barrio/municipio son
+                // independientes y combinables -- se puede buscar solo por
+                // nombre de calle, sin elegir barrio ni municipio.
+                $resultado = $controller->buscar(
+                    $_GET['direccion'] ?? null,
+                    $_GET['barrio'] ?? null,
+                    $_GET['municipio'] ?? null
+                );
+            } elseif (
+                $recurso === 'contenedor'
                 && isset($_GET['bboxNorte'], $_GET['bboxSur'], $_GET['bboxEste'], $_GET['bboxOeste'])
             ) {
                 // Mapa interactivo: con los contenedores oficiales de la IMM

@@ -61,6 +61,57 @@ class ContenedorController
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Buscador del mapa de la landing: direccion/barrio/municipio son todos
+    // opcionales e independientes entre si (se puede buscar solo por nombre
+    // de calle, sin elegir barrio ni municipio). ubicacionContenedor ya
+    // guarda "calle + numero de puerta" como un solo string (ver 13-bis), asi
+    // que un LIKE alcanza sin tener que parsear calle y numero por separado.
+    public function buscar($direccion, $barrio, $municipio)
+    {
+        $condiciones = [];
+        $parametros = [];
+
+        if ($direccion !== null && $direccion !== '') {
+            $condiciones[] = "ubicacionContenedor LIKE ?";
+            $parametros[] = '%' . $direccion . '%';
+        }
+        if ($barrio !== null && $barrio !== '') {
+            $condiciones[] = "zonaContenedor = ?";
+            $parametros[] = $barrio;
+        }
+        if ($municipio !== null && $municipio !== '') {
+            $condiciones[] = "municipioContenedor = ?";
+            $parametros[] = $municipio;
+        }
+
+        $where = $condiciones ? ('WHERE ' . implode(' AND ', $condiciones)) : '';
+
+        // Tope duro: una busqueda muy amplia (ej. una sola letra de calle,
+        // sin barrio/municipio) no puede devolver miles de filas de una.
+        $sql = "SELECT * FROM contenedor $where ORDER BY ubicacionContenedor LIMIT 300";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute($parametros);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Listas de valores distintos para poblar los <select> de barrio/municipio
+    // del buscador del mapa (el landing nunca carga los ~11.130 contenedores
+    // completos, asi que estas listas las tiene que dar el backend).
+    public function obtenerFiltrosDisponibles()
+    {
+        $barrios = $this->conexion->query(
+            "SELECT DISTINCT zonaContenedor FROM contenedor WHERE zonaContenedor IS NOT NULL AND zonaContenedor <> '' ORDER BY zonaContenedor"
+        )->fetchAll(PDO::FETCH_COLUMN);
+
+        $municipios = $this->conexion->query(
+            "SELECT DISTINCT municipioContenedor FROM contenedor WHERE municipioContenedor IS NOT NULL AND municipioContenedor <> '' ORDER BY municipioContenedor"
+        )->fetchAll(PDO::FETCH_COLUMN);
+
+        return ['barrios' => $barrios, 'municipios' => $municipios];
+    }
+
     public function modificar($contenedor)
     {
         $sql = "UPDATE contenedor SET ubicacionContenedor = ?, estadoContenedor = ?, capacidadContenedor = ?, tipoResiduoContenedor = ?, latitudContenedor = ?, longitudContenedor = ?, zonaContenedor = ?, municipioContenedor = ? WHERE idContenedor = ?";
