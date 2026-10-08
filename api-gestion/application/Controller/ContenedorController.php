@@ -63,17 +63,27 @@ class ContenedorController
 
     // Buscador del mapa de la landing: direccion/barrio/municipio son todos
     // opcionales e independientes entre si (se puede buscar solo por nombre
-    // de calle, sin elegir barrio ni municipio). ubicacionContenedor ya
-    // guarda "calle + numero de puerta" como un solo string (ver 13-bis), asi
-    // que un LIKE alcanza sin tener que parsear calle y numero por separado.
+    // de calle, sin elegir barrio ni municipio). ubicacionContenedor guarda
+    // "calle + numero de puerta" como un solo string (ver 13-bis) -- nunca
+    // una esquina/interseccion. El vecino no conoce el numero de puerta del
+    // contenedor de su cuadra (ver cambio de label a "Calle y esquina mas
+    // cercana"), asi que si escribe "Caramuru y Rocafuerte" separarCalleYEsquina()
+    // lo parte en sus 2 calles y se busca con OR entre ambas -- la lista
+    // muestra los contenedores de cualquiera de las 2 calles nombradas y la
+    // persona elige a ojo el mas cercano a esa esquina. Una direccion sin
+    // separador (solo "Caramuru") se comporta exactamente igual que antes.
     public function buscar($direccion, $barrio, $municipio)
     {
         $condiciones = [];
         $parametros = [];
 
         if ($direccion !== null && $direccion !== '') {
-            $condiciones[] = "ubicacionContenedor LIKE ?";
-            $parametros[] = '%' . $direccion . '%';
+            $condicionesDireccion = [];
+            foreach ($this->separarCalleYEsquina($direccion) as $parteDireccion) {
+                $condicionesDireccion[] = "ubicacionContenedor LIKE ?";
+                $parametros[] = '%' . $parteDireccion . '%';
+            }
+            $condiciones[] = '(' . implode(' OR ', $condicionesDireccion) . ')';
         }
         if ($barrio !== null && $barrio !== '') {
             $condiciones[] = "zonaContenedor = ?";
@@ -94,6 +104,29 @@ class ContenedorController
         $stmt->execute($parametros);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Separa "Calle A y Calle B" / "Calle A esq. Calle B" / "Calle A esquina
+    // Calle B" / "Calle A / Calle B" / "Calle A con Calle B" en sus 2 calles.
+    // Si no reconoce ningun separador (una sola calle, sin esquina) devuelve
+    // la direccion completa tal cual, sin partir nada.
+    private function separarCalleYEsquina($direccion)
+    {
+        $separadores = [' esquina ', ' esq. ', ' esq ', ' y ', ' con ', '/'];
+        $texto = ' ' . trim($direccion) . ' ';
+
+        foreach ($separadores as $separador) {
+            $posicion = stripos($texto, $separador);
+            if ($posicion === false) continue;
+
+            $primeraCalle = trim(substr($texto, 0, $posicion));
+            $segundaCalle = trim(substr($texto, $posicion + strlen($separador)));
+            $calles = array_values(array_filter([$primeraCalle, $segundaCalle], fn($calle) => $calle !== ''));
+
+            if (count($calles) === 2) return $calles;
+        }
+
+        return [trim($direccion)];
     }
 
     // Listas de valores distintos para poblar los <select> de barrio/municipio
