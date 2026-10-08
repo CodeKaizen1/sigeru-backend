@@ -283,6 +283,27 @@ if ($esRegistroPublico) {
         echo json_encode(['error' => 'La contraseña debe tener ' . implode(', ', $faltantesPassword) . '.']);
         exit;
     }
+
+    // Punto 5 de la auditoría 08/10/2026: nada impedía que dos cuentas (o una
+    // cuenta y una solicitud pendiente) terminaran con el mismo emailUsuario
+    // -- ni recuperar contraseña ni las notificaciones por email garantizan
+    // entonces a cuál de las dos le llega. Se corta acá, antes de guardar la
+    // solicitud, y de nuevo en crearPersonaConRol() al aprobarla (por si en
+    // el medio se aprobó otra con ese mismo email).
+    $emailDeclarado = $datos['emailUsuario'] ?? null;
+    if ($emailDeclarado !== null && $emailDeclarado !== '') {
+        $usuarioControllerEmail = new UsuarioController();
+        $solicitudControllerEmail = new SolicitudDeUsuarioController();
+
+        if (
+            $usuarioControllerEmail->obtenerPorEmail($emailDeclarado) !== false
+            || $solicitudControllerEmail->obtenerPendientePorEmail($emailDeclarado) !== false
+        ) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Ya hay una cuenta o una solicitud pendiente con ese email.']);
+            exit;
+        }
+    }
 }
 
 if (!$esRegistroPublico) {
@@ -342,6 +363,14 @@ function crearPersonaConRol($datosUsuario, $rol, $passwordParaInicioDeSesion, $p
 
     if ($usuarioController->obtenerPorId($datosUsuario['cedulaUsuario']) !== false) {
         return ['error' => 'Ya existe una persona con esa cédula.'];
+    }
+
+    // Punto 5 de la auditoría 08/10/2026: cubre tanto crearFuncionario (alta
+    // directa desde el panel) como aprobarSolicitud (por si entre el registro
+    // y la aprobación se coló otra cuenta con el mismo email).
+    $emailDeclarado = $datosUsuario['emailUsuario'] ?? null;
+    if ($emailDeclarado !== null && $emailDeclarado !== '' && $usuarioController->obtenerPorEmail($emailDeclarado) !== false) {
+        return ['error' => 'Ya existe una persona con ese email.'];
     }
 
     $nuevoUsuario = new Usuario(

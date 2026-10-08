@@ -48,7 +48,12 @@ CREATE TABLE usuario (
     calleUsuario VARCHAR(150),
     numeroPuertaUsuario VARCHAR(20),
     numeroApartamentoUsuario VARCHAR(20),
-    emailUsuario VARCHAR(150),
+    -- UNIQUE agregado en la Fase 1 de la auditoría 08/10/2026: antes nada
+    -- impedía dos cuentas con el mismo email a nivel de base (el chequeo de
+    -- aplicación en index.php ya existía desde antes, esto es la red de
+    -- seguridad real). NULL no rompe el UNIQUE -- MySQL permite varias filas
+    -- con emailUsuario NULL.
+    emailUsuario VARCHAR(150) UNIQUE,
     telefonoUsuario VARCHAR(20),
     fechaNacimientoUsuario DATE,
     estadoUsuario VARCHAR(50) DEFAULT 'activo',

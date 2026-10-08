@@ -48,6 +48,20 @@ class SolicitudDeUsuarioController
         return $this->conexion->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Punto 5 de la auditoría 08/10/2026: se usa al registrar, para que dos
+    // solicitudes pendientes no terminen con el mismo emailUsuario. Solo mira
+    // "pendiente" a propósito -- una rechazada no debería bloquear que esa
+    // persona intente de nuevo con el mismo email.
+    public function obtenerPendientePorEmail($emailUsuario)
+    {
+        $sql = "SELECT * FROM solicitudDeUsuario WHERE emailUsuario = ? AND estadoSolicitud = 'pendiente'";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([$emailUsuario]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     // No re-hashea contraseniaSolicitud: ese campo ya llega hasheado desde crear().
     public function modificar($solicitud)
     {
