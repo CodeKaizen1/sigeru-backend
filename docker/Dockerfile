@@ -8,3 +8,8 @@ RUN docker-php-ext-install pdo_mysql
 
 # El proyecto no usa rutas amigables (?recurso=... en la URL), no hace
 # falta mod_rewrite.
+
+# Fase 1 punto 7 de la auditoría 08/10/2026: display_errors=On de fábrica
+# en esta imagen expone rutas y consultas SQL crudas ante un error no
+# capturado -- ver docker/php.ini.
+COPY docker/php.ini /usr/local/etc/php/conf.d/99-sigeru.ini
