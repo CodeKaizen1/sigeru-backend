@@ -133,4 +133,42 @@ class IncidenciaControllerTest
 
         MiniTest::afirmarIgual(1, $vecesNotificadaResuelta, "debería notificar al admin la resolución exactamente una vez");
     }
+
+    // Fase 1 punto 4 (auditoría 08/10/2026): zonaDeCuadrilla() es la pieza que
+    // permite que index.php deje de confiar en la zonaIncidencia que manda el
+    // cliente cuando un jefe crea una incidencia para su propia cuadrilla --
+    // la deriva de la ruta real asignada en vez de aceptar texto arbitrario.
+    public function testZonaDeCuadrillaDevuelveLaZonaDeLaRutaAsignada()
+    {
+        $zona = 'Zona test ruta ' . uniqid();
+        $this->conexion->prepare("INSERT INTO ruta (zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta) VALUES (?, ?, ?, ?)")
+            ->execute([$zona, 'recorrido test', 'diaria', '08:00']);
+        $idRuta = (int) $this->conexion->lastInsertId();
+
+        $nombreCuadrilla = 'Cuadrilla test zona ' . uniqid();
+        $this->conexion->prepare("INSERT INTO cuadrilla (nombreCuadrilla, idRuta) VALUES (?, ?)")->execute([$nombreCuadrilla, $idRuta]);
+        $stmtCuadrilla = $this->conexion->prepare("SELECT idCuadrilla FROM cuadrilla WHERE nombreCuadrilla = ?");
+        $stmtCuadrilla->execute([$nombreCuadrilla]);
+        $idCuadrillaConRuta = (int) $stmtCuadrilla->fetchColumn();
+
+        $controller = new IncidenciaController();
+        $zonaObtenida = $controller->zonaDeCuadrilla($idCuadrillaConRuta);
+
+        MiniTest::afirmarIgual($zona, $zonaObtenida, "debería traer la zonaRuta real de la ruta asignada a la cuadrilla");
+
+        // Limpieza propia -- no toca $this->idCuadrilla (la de antes()), así
+        // que despues() no se pisa con esto.
+        $this->conexion->prepare("DELETE FROM cuadrilla WHERE idCuadrilla = ?")->execute([$idCuadrillaConRuta]);
+        $this->conexion->prepare("DELETE FROM ruta WHERE idRuta = ?")->execute([$idRuta]);
+    }
+
+    public function testZonaDeCuadrillaDevuelveNullSinCuadrillaOSinRutaAsignada()
+    {
+        $controller = new IncidenciaController();
+
+        MiniTest::afirmarIgual(null, $controller->zonaDeCuadrilla(null), "sin idCuadrilla no debería ni consultar la base");
+        // $this->idCuadrilla (de antes()) no tiene idRuta asignado -- zonaRuta
+        // debería volver null, no romper por el JOIN sin coincidencias.
+        MiniTest::afirmarIgual(null, $controller->zonaDeCuadrilla($this->idCuadrilla), "cuadrilla sin ruta asignada debería devolver null, no romper");
+    }
 }

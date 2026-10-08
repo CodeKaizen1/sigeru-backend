@@ -124,5 +124,26 @@ class IncidenciaController
 
         return $stmt->fetchColumn() > 0;
     }
+
+    // Zona real de la ruta asignada a la cuadrilla (join cuadrilla -> ruta),
+    // para que cuando un jefe reporta una incidencia para su propia cuadrilla
+    // la zonaIncidencia se derive server-side, igual que ya se hacía con el
+    // reporte público vía el contenedor. No confiar en el zonaIncidencia que
+    // mande el cliente (auditoria 08/10/2026, punto 4 de la Fase 1).
+    public function zonaDeCuadrilla($idCuadrilla)
+    {
+        if ($idCuadrilla === null || $idCuadrilla === '') {
+            return null;
+        }
+
+        $sql = "SELECT r.zonaRuta FROM cuadrilla c
+                JOIN ruta r ON r.idRuta = c.idRuta
+                WHERE c.idCuadrilla = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([$idCuadrilla]);
+
+        $zona = $stmt->fetchColumn();
+        return $zona !== false ? $zona : null;
+    }
 }
 ?>

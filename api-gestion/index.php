@@ -177,10 +177,29 @@ if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !
     // arbitrario ahi (ver auditoria de seguridad, XSS del buscador publico
     // de incidencias en sigeru-frontend/landing).
     $datos['zonaIncidencia'] = $contenedorDeclarado['ubicacionContenedor'] ?? null;
+}
+
+// tipoIncidencia y zonaIncidencia no se confian del cliente en NINGUNA vía de
+// creación (ni el reporte público del vecino ni la que arma un jefe para su
+// propia cuadrilla): antes esta validación solo corría en la rama del reporte
+// público de arriba, así que un jefe podía mandar zonaIncidencia/tipoIncidencia
+// arbitrarios en el POST -- ver auditoría 08/10/2026, Fase 1 punto 4.
+if (($esReportePublicoDeIncidencia || $esJefeCreandoIncidenciaPropia) && $datos !== null) {
+    if ($esJefeCreandoIncidenciaPropia) {
+        // Acá zonaIncidencia no viene de un contenedor (el jefe puede reportar
+        // sin uno puntual, ver crearIncidenciaDesdeCuadrilla() en model.js):
+        // se deriva de la ruta real asignada a su cuadrilla.
+        $zonaReal = $incidenciaController->zonaDeCuadrilla($idCuadrillaDeclarada);
+        $datos['zonaIncidencia'] = $zonaReal ?? ($datos['zonaIncidencia'] ?? null);
+    }
 
     // tipoIncidencia se valida contra la misma lista fija que usa el <select>
-    // del formulario publico (TIPOS_INCIDENCIA en landing/js/app.js) -- antes
-    // solo se validaba del lado del JS, y el endpoint acepta POST sin sesion.
+    // del formulario público (TIPOS_INCIDENCIA en landing/js/app.js) -- antes
+    // solo se validaba del lado del JS, y el endpoint acepta POST sin sesión.
+    // Un valor inválido ahora corta con 400 en vez de reemplazarse en
+    // silencio (punto 8 de la misma auditoría): así queda claro en el
+    // cliente que algo vino mal, en vez de guardarse como "Otra situación"
+    // sin que nadie se entere.
     $tiposIncidenciaPermitidos = [
         'Contenedor desbordado',
         'Contenedor dañado',
@@ -189,7 +208,9 @@ if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !
         'Otra situación',
     ];
     if (!in_array($datos['tipoIncidencia'] ?? null, $tiposIncidenciaPermitidos, true)) {
-        $datos['tipoIncidencia'] = 'Otra situación';
+        http_response_code(400);
+        echo json_encode(['error' => 'tipoIncidencia inválido']);
+        exit;
     }
 }
 
