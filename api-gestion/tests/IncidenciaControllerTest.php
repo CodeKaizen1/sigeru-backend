@@ -171,4 +171,21 @@ class IncidenciaControllerTest
         // debería volver null, no romper por el JOIN sin coincidencias.
         MiniTest::afirmarIgual(null, $controller->zonaDeCuadrilla($this->idCuadrilla), "cuadrilla sin ruta asignada debería devolver null, no romper");
     }
+
+    // Antes esto se perdía: resolucionIncidencia/fechaResolucionIncidencia no
+    // tenían columna en la base ni se mandaban en el UPDATE, así que quedaban
+    // en memoria del lado del cliente y se perdían al recargar la página.
+    public function testModificarPersisteLaResolucion()
+    {
+        $controller = new IncidenciaController();
+        $id = $controller->crear(new Incidencia(null, 'Contenedor desbordado', 'abierta', null, 'desborde', 'Zona test', date('Y-m-d H:i:s'), $this->idContenedor, null));
+        $this->idIncidencia = $id;
+
+        $fechaResolucion = date('Y-m-d H:i:s');
+        $controller->modificar(new Incidencia($id, 'Contenedor desbordado', 'resuelta', null, 'desborde', 'Zona test', date('Y-m-d H:i:s'), $this->idContenedor, null, 'Se vació el contenedor y se reforzó la frecuencia de recolección.', $fechaResolucion));
+
+        $fila = $controller->obtenerPorId($id);
+        MiniTest::afirmarIgual('Se vació el contenedor y se reforzó la frecuencia de recolección.', $fila['resolucionIncidencia'] ?? null, "debería guardar el detalle de la resolución");
+        MiniTest::afirmar(!empty($fila['fechaResolucionIncidencia']), "debería guardar la fecha de resolución");
+    }
 }

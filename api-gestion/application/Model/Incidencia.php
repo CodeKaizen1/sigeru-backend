@@ -11,8 +11,10 @@ class Incidencia
     private $fechaReporte;
     private $idContenedor;
     private $idCuadrilla;
+    private $resolucionIncidencia;
+    private $fechaResolucionIncidencia;
 
-    public function __construct($idIncidencia, $descripcionIncidencia, $estadoIncidencia, $emailResponsableIncidencia, $tipoIncidencia, $zonaIncidencia, $fechaReporte, $idContenedor, $idCuadrilla)
+    public function __construct($idIncidencia, $descripcionIncidencia, $estadoIncidencia, $emailResponsableIncidencia, $tipoIncidencia, $zonaIncidencia, $fechaReporte, $idContenedor, $idCuadrilla, $resolucionIncidencia = null, $fechaResolucionIncidencia = null)
     {
         $this->idIncidencia = $idIncidencia;
         $this->descripcionIncidencia = $descripcionIncidencia;
@@ -23,6 +25,8 @@ class Incidencia
         $this->fechaReporte = $fechaReporte;
         $this->idContenedor = $idContenedor;
         $this->idCuadrilla = $idCuadrilla;
+        $this->resolucionIncidencia = $resolucionIncidencia;
+        $this->fechaResolucionIncidencia = $fechaResolucionIncidencia;
     }
 
         public function getIdIncidencia()
@@ -113,6 +117,26 @@ class Incidencia
     public function setIdCuadrilla($idCuadrilla)
     {
         $this->idCuadrilla = $idCuadrilla;
+    }
+
+    public function getResolucionIncidencia()
+    {
+        return $this->resolucionIncidencia;
+    }
+
+    public function setResolucionIncidencia($resolucionIncidencia)
+    {
+        $this->resolucionIncidencia = $resolucionIncidencia;
+    }
+
+    public function getFechaResolucionIncidencia()
+    {
+        return $this->fechaResolucionIncidencia;
+    }
+
+    public function setFechaResolucionIncidencia($fechaResolucionIncidencia)
+    {
+        $this->fechaResolucionIncidencia = $fechaResolucionIncidencia;
     }
 }
 ?>

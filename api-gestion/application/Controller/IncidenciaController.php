@@ -16,11 +16,11 @@ class IncidenciaController
     // Devuelve el idIncidencia recién generado (o false si falló), a diferencia de los demás crear().
     public function crear($incidencia)
     {
-        $sql = "INSERT INTO incidencia (idIncidencia, descripcionIncidencia, estadoIncidencia, emailResponsableIncidencia, tipoIncidencia, zonaIncidencia, fechaReporte, idContenedor, idCuadrilla) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO incidencia (idIncidencia, descripcionIncidencia, estadoIncidencia, emailResponsableIncidencia, tipoIncidencia, zonaIncidencia, fechaReporte, idContenedor, idCuadrilla, resolucionIncidencia, fechaResolucionIncidencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
 
-        $ok = $stmt->execute([$incidencia->getIdIncidencia(), $incidencia->getDescripcionIncidencia(), $incidencia->getEstadoIncidencia(), $incidencia->getEmailResponsableIncidencia(), $incidencia->getTipoIncidencia(), $incidencia->getZonaIncidencia(), $incidencia->getFechaReporte(), $incidencia->getIdContenedor(), $incidencia->getIdCuadrilla()]);
+        $ok = $stmt->execute([$incidencia->getIdIncidencia(), $incidencia->getDescripcionIncidencia(), $incidencia->getEstadoIncidencia(), $incidencia->getEmailResponsableIncidencia(), $incidencia->getTipoIncidencia(), $incidencia->getZonaIncidencia(), $incidencia->getFechaReporte(), $incidencia->getIdContenedor(), $incidencia->getIdCuadrilla(), $incidencia->getResolucionIncidencia(), $incidencia->getFechaResolucionIncidencia()]);
 
         if (!$ok) {
             return false;
@@ -72,11 +72,11 @@ class IncidenciaController
         // así que la única forma de detectarlos es diffear contra la fila previa.
         $anterior = $this->obtenerPorId($incidencia->getIdIncidencia());
 
-        $sql = "UPDATE incidencia SET descripcionIncidencia = ?, estadoIncidencia = ?, emailResponsableIncidencia = ?, tipoIncidencia = ?, zonaIncidencia = ?, fechaReporte = ?, idContenedor = ?, idCuadrilla = ? WHERE idIncidencia = ?";
+        $sql = "UPDATE incidencia SET descripcionIncidencia = ?, estadoIncidencia = ?, emailResponsableIncidencia = ?, tipoIncidencia = ?, zonaIncidencia = ?, fechaReporte = ?, idContenedor = ?, idCuadrilla = ?, resolucionIncidencia = ?, fechaResolucionIncidencia = ? WHERE idIncidencia = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
-        $ok = $stmt->execute([$incidencia->getDescripcionIncidencia(), $incidencia->getEstadoIncidencia(), $incidencia->getEmailResponsableIncidencia(), $incidencia->getTipoIncidencia(), $incidencia->getZonaIncidencia(), $incidencia->getFechaReporte(), $incidencia->getIdContenedor(), $incidencia->getIdCuadrilla(), $incidencia->getIdIncidencia()]);
+        $ok = $stmt->execute([$incidencia->getDescripcionIncidencia(), $incidencia->getEstadoIncidencia(), $incidencia->getEmailResponsableIncidencia(), $incidencia->getTipoIncidencia(), $incidencia->getZonaIncidencia(), $incidencia->getFechaReporte(), $incidencia->getIdContenedor(), $incidencia->getIdCuadrilla(), $incidencia->getResolucionIncidencia(), $incidencia->getFechaResolucionIncidencia(), $incidencia->getIdIncidencia()]);
 
         if ($ok && $anterior !== false) {
             $notificaciones = new NotificacionController();

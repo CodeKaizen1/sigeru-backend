@@ -85,7 +85,7 @@ $recursos = [
     'incidencia' => [
         'controller' => 'IncidenciaController',
         'modelo' => 'Incidencia',
-        'campos' => ['idIncidencia', 'descripcionIncidencia', 'estadoIncidencia', 'emailResponsableIncidencia', 'tipoIncidencia', 'zonaIncidencia', 'fechaReporte', 'idContenedor', 'idCuadrilla'],
+        'campos' => ['idIncidencia', 'descripcionIncidencia', 'estadoIncidencia', 'emailResponsableIncidencia', 'tipoIncidencia', 'zonaIncidencia', 'fechaReporte', 'idContenedor', 'idCuadrilla', 'resolucionIncidencia', 'fechaResolucionIncidencia'],
         'obligatoriosModificar' => ['idIncidencia'],
     ],
     'residuo' => [
@@ -211,6 +211,47 @@ if (($esReportePublicoDeIncidencia || $esJefeCreandoIncidenciaPropia) && $datos 
         http_response_code(400);
         echo json_encode(['error' => 'tipoIncidencia inválido']);
         exit;
+    }
+}
+
+// Un admin (o el jefe resolviendo su propia incidencia) no puede dejarla
+// "resuelta" sin decir qué se hizo -- el frontend ya lo exige, pero nada
+// lo garantizaba del lado del servidor. Tampoco se puede asignar una
+// cuadrilla cuya ruta esté en otra zona que la de la incidencia (ej. no
+// asignar una incidencia de Punta Gorda a una cuadrilla que recorre
+// Pocitos).
+if ($recurso === 'incidencia' && $metodo === 'PUT' && $datos !== null) {
+    if (($datos['estadoIncidencia'] ?? null) === 'resuelta' && trim($datos['resolucionIncidencia'] ?? '') === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Para marcar una incidencia como resuelta hay que indicar qué se hizo para resolverla.']);
+        exit;
+    }
+
+    $idCuadrillaDeclaradaPut = $datos['idCuadrilla'] ?? null;
+    if ($idCuadrillaDeclaradaPut !== null && $idCuadrillaDeclaradaPut !== '') {
+        $incidenciaControllerValidacion = new IncidenciaController();
+        $filaActualParaZona = $incidenciaControllerValidacion->obtenerPorId($datos['idIncidencia'] ?? null);
+
+        // El body de este PUT siempre viaja completo (ver cuerpoIncidencia() en
+        // model.js: no es un patch parcial), así que idCuadrilla casi siempre
+        // viene igual al valor ya guardado -- por ejemplo cuando el jefe solo
+        // está marcando "resuelta" su propia incidencia. Solo se valida la zona
+        // cuando la asignación REALMENTE cambia, para no romper un PUT no
+        // relacionado por una asignación previa que (por datos viejos de antes
+        // de este chequeo) ya no coincidiera.
+        $idCuadrillaAnteriorPut = $filaActualParaZona !== false ? ($filaActualParaZona['idCuadrilla'] ?? null) : null;
+        $huboReasignacion = (string) $idCuadrillaDeclaradaPut !== (string) $idCuadrillaAnteriorPut;
+
+        if ($huboReasignacion) {
+            $zonaIncidenciaReal = $filaActualParaZona !== false ? ($filaActualParaZona['zonaIncidencia'] ?? null) : null;
+            $zonaCuadrillaDeclarada = $incidenciaControllerValidacion->zonaDeCuadrilla($idCuadrillaDeclaradaPut);
+
+            if ($zonaIncidenciaReal !== null && $zonaCuadrillaDeclarada !== $zonaIncidenciaReal) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Esa cuadrilla no cubre la zona de la incidencia (' . $zonaIncidenciaReal . ').']);
+                exit;
+            }
+        }
     }
 }
 

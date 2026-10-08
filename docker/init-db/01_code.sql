@@ -193,6 +193,8 @@ CREATE TABLE incidencia (
     fechaReporte DATETIME,
     idContenedor INT NULL,
     idCuadrilla INT NULL,
+    resolucionIncidencia TEXT NULL,
+    fechaResolucionIncidencia DATETIME NULL,
     FOREIGN KEY (idContenedor) REFERENCES contenedor(idContenedor)
 );
 
