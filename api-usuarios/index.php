@@ -310,6 +310,44 @@ if (!$esRegistroPublico) {
     exigirSesion();
 }
 
+// Hallazgo reportado por el profesor (08/10/2026): los 4 paneles del
+// backoffice decidían "¿hay sesión?" mirando solo una copia en
+// sessionStorage (ver auth.js) -- sessionStorage es por pestaña, así que
+// pegar la URL de un panel en una pestaña nueva mostraba "Acceso no
+// autorizado" aunque la sesión real (cookie PHPSESSID, que sí es
+// compartida entre pestañas) siguiera siendo válida. Este endpoint es lo
+// que esa copia local debería haber consultado desde el principio: a esta
+// altura ya pasó exigirSesion(), así que si llegamos acá hay una sesión
+// real.
+if ($recurso === 'sesionActual') {
+    if ($metodo !== 'GET') {
+        http_response_code(405);
+        echo json_encode(['error' => 'sesionActual solo acepta GET']);
+        exit;
+    }
+
+    $usuarioControllerSesion = new UsuarioController();
+    $filaSesion = $usuarioControllerSesion->obtenerPorId($_SESSION['cedulaUsuario']);
+
+    if ($filaSesion === false) {
+        // La cuenta se borró o desactivó después de que se inició esta sesión.
+        $_SESSION = [];
+        session_destroy();
+        http_response_code(401);
+        echo json_encode(['error' => 'Sesión inválida.']);
+        exit;
+    }
+
+    echo json_encode(['exito' => true, 'usuario' => [
+        'cedulaUsuario' => $filaSesion['cedulaUsuario'],
+        'nombreUsuario' => $filaSesion['nombreUsuario'],
+        'apellidoUsuario' => $filaSesion['apellidoUsuario'],
+        'emailUsuario' => $filaSesion['emailUsuario'],
+        'rol' => $filaSesion['rolUsuario'],
+    ]]);
+    exit;
+}
+
 if ($recurso === 'cambiarPassword') {
     if ($metodo !== 'POST') {
         http_response_code(405);
