@@ -270,6 +270,40 @@ if ($recurso === 'restablecerPassword') {
     exit;
 }
 
+// Valida el token de restablecer.html apenas carga la página, sin
+// consumirlo (punto 12 de la Fase 2, plan 08/10/2026): antes el usuario
+// completaba el formulario entero y recién al enviarlo se enteraba de que
+// el link ya no servía. Reutiliza buscarPorToken() -- el mismo chequeo de
+// vencimiento de restablecerPassword -- pero nunca llama a eliminar(), así
+// que el token sigue disponible para el restablecerPassword real que viene
+// después.
+if ($recurso === 'validarTokenReseteo') {
+    if ($metodo !== 'GET') {
+        http_response_code(405);
+        echo json_encode(['error' => 'validarTokenReseteo solo acepta GET']);
+        exit;
+    }
+
+    $token = $_GET['token'] ?? '';
+    if ($token === '') {
+        http_response_code(400);
+        echo json_encode(['valido' => false, 'error' => 'Falta el token']);
+        exit;
+    }
+
+    $resetController = new PasswordResetController();
+    $fila = $resetController->buscarPorToken($token);
+
+    if ($fila === false || strtotime($fila['expiraPasswordReset']) < time()) {
+        http_response_code(400);
+        echo json_encode(['valido' => false, 'error' => 'El link de recuperación no es válido o ya venció. Pedí uno nuevo.']);
+        exit;
+    }
+
+    echo json_encode(['valido' => true]);
+    exit;
+}
+
 // El registro público (alta de solicitudDeUsuario) no requiere sesión.
 $esRegistroPublico = ($recurso === 'solicitudDeUsuario' && $metodo === 'POST');
 
