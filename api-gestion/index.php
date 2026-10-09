@@ -376,6 +376,13 @@ try {
                 $resultado = $controller->obtenerFiltrosDisponibles();
             } elseif (
                 $recurso === 'contenedor'
+                && isset($_GET['idRuta']) && $_GET['idRuta'] !== ''
+            ) {
+                // Panel de chofer/jefe/operario ("Direcciones de mi ruta"):
+                // contenedores de UNA ruta especifica, no de todo el barrio.
+                $resultado = $controller->obtenerPorRuta((int) $_GET['idRuta']);
+            } elseif (
+                $recurso === 'contenedor'
                 && (
                     (isset($_GET['direccion']) && $_GET['direccion'] !== '')
                     || (isset($_GET['barrio']) && $_GET['barrio'] !== '')

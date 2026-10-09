@@ -129,6 +129,23 @@ class ContenedorController
         return [trim($direccion)];
     }
 
+    // Contenedores de UNA ruta especifica (panel de chofer/jefe/operario,
+    // "Direcciones de mi ruta") -- antes se pedian por barrio completo
+    // (buscar() con $barrio), pero un barrio grande puede tener varias
+    // rutas reales distintas (ver contenedor.idRuta, 01_code.sql seccion
+    // 11): esto devuelve solo los contenedores de ESA ruta en particular.
+    // Sin LIMIT: una ruta individual tiene ~25-40 contenedores (rango
+    // realista para un camion), muy por debajo de cualquier tope.
+    public function obtenerPorRuta($idRuta)
+    {
+        $sql = "SELECT * FROM contenedor WHERE idRuta = ? ORDER BY ubicacionContenedor";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([$idRuta]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Listas de valores distintos para poblar los <select> de barrio/municipio
     // del buscador del mapa (el landing nunca carga los ~11.130 contenedores
     // completos, asi que estas listas las tiene que dar el backend).

@@ -10,10 +10,15 @@ class Ruta
     private $horaInicioRealRuta;
     private $horaFinRealRuta;
     private $estadoAdminRuta;
+    // nombreRuta (agregado 09/10/2026): etiqueta corta para identificar una
+    // ruta puntual cuando su barrio tiene mas de una (ej. "Pocitos 3") --
+    // opcional, al final, mismo patron que el resto de las columnas que se
+    // fueron agregando con ALTER TABLE (ver 01_code.sql, seccion 11).
+    private $nombreRuta;
 
     // estadoRuta/horaInicioRealRuta/horaFinRealRuta: seguimiento del recorrido del día.
     // estadoAdminRuta: alta/baja administrativa de la ruta.
-    public function __construct($idRuta, $zonaRuta, $recorridoRuta, $frecuenciaDeRecoleccionRuta, $horarioRuta, $estadoRuta = null, $horaInicioRealRuta = null, $horaFinRealRuta = null, $estadoAdminRuta = null)
+    public function __construct($idRuta, $zonaRuta, $recorridoRuta, $frecuenciaDeRecoleccionRuta, $horarioRuta, $estadoRuta = null, $horaInicioRealRuta = null, $horaFinRealRuta = null, $estadoAdminRuta = null, $nombreRuta = null)
     {
         $this->idRuta = $idRuta;
         $this->zonaRuta = $zonaRuta;
@@ -24,6 +29,7 @@ class Ruta
         $this->horaInicioRealRuta = $horaInicioRealRuta;
         $this->horaFinRealRuta = $horaFinRealRuta;
         $this->estadoAdminRuta = $estadoAdminRuta;
+        $this->nombreRuta = $nombreRuta;
     }
 
     public function getIdRuta()
@@ -114,6 +120,16 @@ class Ruta
     public function setEstadoAdminRuta($estadoAdminRuta)
     {
         $this->estadoAdminRuta = $estadoAdminRuta;
+    }
+
+    public function getNombreRuta()
+    {
+        return $this->nombreRuta;
+    }
+
+    public function setNombreRuta($nombreRuta)
+    {
+        $this->nombreRuta = $nombreRuta;
     }
 }
 ?>

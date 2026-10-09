@@ -43,7 +43,7 @@ $recursos = [
     'ruta' => [
         'controller' => 'RutaController',
         'modelo' => 'Ruta',
-        'campos' => ['idRuta', 'zonaRuta', 'recorridoRuta', 'frecuenciaDeRecoleccionRuta', 'horarioRuta', 'estadoRuta', 'horaInicioRealRuta', 'horaFinRealRuta', 'estadoAdminRuta'],
+        'campos' => ['idRuta', 'zonaRuta', 'recorridoRuta', 'frecuenciaDeRecoleccionRuta', 'horarioRuta', 'estadoRuta', 'horaInicioRealRuta', 'horaFinRealRuta', 'estadoAdminRuta', 'nombreRuta'],
         'obligatoriosModificar' => ['idRuta'],
     ],
     'vehiculo' => [

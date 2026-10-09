@@ -14,11 +14,11 @@ class RutaController
 
     public function crear($ruta)
     {
-        $sql = "INSERT INTO ruta (idRuta, zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta, estadoRuta, horaInicioRealRuta, horaFinRealRuta, estadoAdminRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO ruta (idRuta, zonaRuta, recorridoRuta, frecuenciaDeRecoleccionRuta, horarioRuta, estadoRuta, horaInicioRealRuta, horaFinRealRuta, estadoAdminRuta, nombreRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$ruta->getIdRuta(), $ruta->getZonaRuta(), $ruta->getRecorridoRuta(), $ruta->getFrecuenciaDeRecoleccionRuta(), $ruta->getHorarioRuta(), $ruta->getEstadoRuta() ?? 'sin iniciar', $ruta->getHoraInicioRealRuta(), $ruta->getHoraFinRealRuta(), $ruta->getEstadoAdminRuta() ?? 'activa']);
+        return $stmt->execute([$ruta->getIdRuta(), $ruta->getZonaRuta(), $ruta->getRecorridoRuta(), $ruta->getFrecuenciaDeRecoleccionRuta(), $ruta->getHorarioRuta(), $ruta->getEstadoRuta() ?? 'sin iniciar', $ruta->getHoraInicioRealRuta(), $ruta->getHoraFinRealRuta(), $ruta->getEstadoAdminRuta() ?? 'activa', $ruta->getNombreRuta()]);
     }
 
     public function obtenerTodos()
@@ -40,11 +40,11 @@ class RutaController
 
     public function modificar($ruta)
     {
-        $sql = "UPDATE ruta SET zonaRuta = ?, recorridoRuta = ?, frecuenciaDeRecoleccionRuta = ?, horarioRuta = ?, estadoRuta = ?, horaInicioRealRuta = ?, horaFinRealRuta = ?, estadoAdminRuta = ? WHERE idRuta = ?";
+        $sql = "UPDATE ruta SET zonaRuta = ?, recorridoRuta = ?, frecuenciaDeRecoleccionRuta = ?, horarioRuta = ?, estadoRuta = ?, horaInicioRealRuta = ?, horaFinRealRuta = ?, estadoAdminRuta = ?, nombreRuta = ? WHERE idRuta = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$ruta->getZonaRuta(), $ruta->getRecorridoRuta(), $ruta->getFrecuenciaDeRecoleccionRuta(), $ruta->getHorarioRuta(), $ruta->getEstadoRuta(), $ruta->getHoraInicioRealRuta(), $ruta->getHoraFinRealRuta(), $ruta->getEstadoAdminRuta(), $ruta->getIdRuta()]);
+        return $stmt->execute([$ruta->getZonaRuta(), $ruta->getRecorridoRuta(), $ruta->getFrecuenciaDeRecoleccionRuta(), $ruta->getHorarioRuta(), $ruta->getEstadoRuta(), $ruta->getHoraInicioRealRuta(), $ruta->getHoraFinRealRuta(), $ruta->getEstadoAdminRuta(), $ruta->getNombreRuta(), $ruta->getIdRuta()]);
     }
 
     public function eliminar($idRuta)

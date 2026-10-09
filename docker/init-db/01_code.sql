@@ -459,6 +459,50 @@ ALTER TABLE contenedor
 -- a propósito: también se cuentan intentos contra emails que ni
 -- siquiera existen (alguien probando direcciones al azar), y esos no
 -- tienen fila en "usuario".
+-- ------------------------------------------------------------
+-- 11. Rutas por contenedor + nombre corto de ruta (09/10/2026) — ajuste
+-- a pedido de Matías.
+-- ------------------------------------------------------------
+-- Hasta ahora chofer/jefe/operario veían TODOS los contenedores del
+-- BARRIO de su ruta (zonaContenedor = zonaRuta), sin importar cuál de
+-- las (a veces varias) rutas reales de ese barrio les tocaba a ellos.
+-- En un barrio grande eso es irreal para un solo camión: investigando
+-- cuántos contenedores levanta en la práctica un camión de recolección
+-- por recorrido (ver claude/investigacion_contenedores_por_ruta.md),
+-- el rango realista ronda 25 a 40 por ruta -- Pocitos, por ejemplo,
+-- tiene 396 contenedores pero solo 8 circuitos reales de la IMM
+-- cargados, muy por encima de ese rango.
+--
+-- - contenedor.idRuta: a qué ruta ESPECÍFICA pertenece ese contenedor
+--   (antes la única relación era por barrio, que no distingue entre
+--   varias rutas del mismo barrio). NULL-able: un contenedor sin ruta
+--   asignada simplemente no aparece en ningún panel de chofer/jefe/
+--   operario, sin romper nada del resto del CRUD.
+-- - ruta.nombreRuta: etiqueta corta para identificar una ruta cuando
+--   su barrio tiene más de una (ej. "Pocitos 3") -- antes todas las
+--   rutas de un mismo barrio se veían iguales en los paneles salvo por
+--   el recorrido/circuito oficial (texto largo, pensado para el
+--   detalle, no para un resumen). No reemplaza a zonaRuta/recorridoRuta,
+--   que siguen guardando el barrio real y el código de circuito oficial
+--   de la IMM tal cual.
+--
+-- Ver docker/init-db/05_rutas_por_contenedor.sql para el reparto real:
+-- a los 130 circuitos oficiales ya cargados se les puso nombreRuta, y
+-- donde 1 barrio no alcanzaba a cubrir su propia cantidad de
+-- contenedores dentro de ese rango de 25-40 por ruta se agregaron
+-- subdivisiones NO oficiales (marcadas como tales en su propio
+-- recorridoRuta, nunca inventadas como si fueran circuitos reales de
+-- la IMM) -- método: partición geográfica balanceada (recursive
+-- coordinate bisection) sobre latitud/longitud de cada contenedor, no
+-- un corte alfabético ni al azar.
+ALTER TABLE ruta
+    ADD COLUMN nombreRuta VARCHAR(100) NULL;
+
+ALTER TABLE contenedor
+    ADD COLUMN idRuta INT NULL,
+    ADD CONSTRAINT fk_contenedor_ruta FOREIGN KEY (idRuta) REFERENCES ruta(idRuta),
+    ADD INDEX idx_contenedor_ruta (idRuta);
+
 CREATE TABLE intentoLoginFallido (
     idIntentoLoginFallido INT AUTO_INCREMENT PRIMARY KEY,
     emailIntentoLoginFallido VARCHAR(150) NOT NULL,
