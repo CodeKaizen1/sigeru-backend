@@ -172,11 +172,21 @@ if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !
     }
 
     // zonaIncidencia no se toma de lo que mande el cliente: se fuerza la
-    // ubicacion real del contenedor guardada en la base. El reporte publico
-    // no exige sesion, asi que sin esto cualquiera podia mandar HTML/texto
-    // arbitrario ahi (ver auditoria de seguridad, XSS del buscador publico
-    // de incidencias en sigeru-frontend/landing).
-    $datos['zonaIncidencia'] = $contenedorDeclarado['ubicacionContenedor'] ?? null;
+    // zona/barrio real del contenedor guardada en la base (zonaContenedor,
+    // NO ubicacionContenedor -- esa es la direccion/calle, no el barrio).
+    // El reporte publico no exige sesion, asi que sin esto cualquiera podia
+    // mandar HTML/texto arbitrario ahi (ver auditoria de seguridad, XSS del
+    // buscador publico de incidencias en sigeru-frontend/landing).
+    //
+    // OJO: antes esto tomaba ubicacionContenedor (la direccion/calle) en vez
+    // de zonaContenedor (el barrio). zonaIncidencia se usa para filtrar que
+    // cuadrillas puede ofrecer el panel admin al asignar (solo las que cubren
+    // esa zona, ver Model.opcionesCuadrillaParaAsignar en
+    // backoffice/js/admin/model.js) -- al guardar una direccion ahi en vez
+    // del barrio, esa comparacion nunca encontraba coincidencias y el
+    // selector terminaba mostrando TODAS las cuadrillas en vez de solo las
+    // de la zona de la incidencia.
+    $datos['zonaIncidencia'] = $contenedorDeclarado['zonaContenedor'] ?? null;
 }
 
 // tipoIncidencia y zonaIncidencia no se confian del cliente en NINGUNA vía de
