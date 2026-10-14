@@ -15,8 +15,16 @@ class Contenedor
     // el panel de admin puede no tenerlos.
     private $zonaContenedor;
     private $municipioContenedor;
+    // idRuta/ordenRutaContenedor (14/10/2026, 01_code.sql seccion 12): a que
+    // ruta puntual pertenece este contenedor y en que posicion de esa ruta
+    // se recolecta -- se completan desde "Nueva ruta" en el panel de admin,
+    // no son campos que tipee el admin en el alta/edicion normal de un
+    // contenedor suelto. NULL-ables: un contenedor sin ruta asignada
+    // simplemente no aparece en ningun panel de chofer/jefe/operario.
+    private $idRuta;
+    private $ordenRutaContenedor;
 
-    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor, $latitudContenedor = null, $longitudContenedor = null, $zonaContenedor = null, $municipioContenedor = null)
+    public function __construct($idContenedor, $ubicacionContenedor, $estadoContenedor, $capacidadContenedor, $tipoResiduoContenedor, $latitudContenedor = null, $longitudContenedor = null, $zonaContenedor = null, $municipioContenedor = null, $idRuta = null, $ordenRutaContenedor = null)
     {
         $this->idContenedor = $idContenedor;
         $this->ubicacionContenedor = $ubicacionContenedor;
@@ -27,6 +35,8 @@ class Contenedor
         $this->longitudContenedor = $longitudContenedor;
         $this->zonaContenedor = $zonaContenedor;
         $this->municipioContenedor = $municipioContenedor;
+        $this->idRuta = $idRuta;
+        $this->ordenRutaContenedor = $ordenRutaContenedor;
     }
 
     public function getIdContenedor()
@@ -117,6 +127,26 @@ class Contenedor
     public function setMunicipioContenedor($municipioContenedor)
     {
         $this->municipioContenedor = $municipioContenedor;
+    }
+
+    public function getIdRuta()
+    {
+        return $this->idRuta;
+    }
+
+    public function setIdRuta($idRuta)
+    {
+        $this->idRuta = $idRuta;
+    }
+
+    public function getOrdenRutaContenedor()
+    {
+        return $this->ordenRutaContenedor;
+    }
+
+    public function setOrdenRutaContenedor($ordenRutaContenedor)
+    {
+        $this->ordenRutaContenedor = $ordenRutaContenedor;
     }
 }
 ?>

@@ -15,10 +15,14 @@ class Ruta
     // opcional, al final, mismo patron que el resto de las columnas que se
     // fueron agregando con ALTER TABLE (ver 01_code.sql, seccion 11).
     private $nombreRuta;
+    // municipioRuta (agregado 14/10/2026, seccion 12): se completa solo al
+    // elegir el barrio en "Nueva ruta" (se saca del municipioContenedor de
+    // los contenedores de ese barrio), no es texto libre que tipee el admin.
+    private $municipioRuta;
 
     // estadoRuta/horaInicioRealRuta/horaFinRealRuta: seguimiento del recorrido del día.
     // estadoAdminRuta: alta/baja administrativa de la ruta.
-    public function __construct($idRuta, $zonaRuta, $recorridoRuta, $frecuenciaDeRecoleccionRuta, $horarioRuta, $estadoRuta = null, $horaInicioRealRuta = null, $horaFinRealRuta = null, $estadoAdminRuta = null, $nombreRuta = null)
+    public function __construct($idRuta, $zonaRuta, $recorridoRuta, $frecuenciaDeRecoleccionRuta, $horarioRuta, $estadoRuta = null, $horaInicioRealRuta = null, $horaFinRealRuta = null, $estadoAdminRuta = null, $nombreRuta = null, $municipioRuta = null)
     {
         $this->idRuta = $idRuta;
         $this->zonaRuta = $zonaRuta;
@@ -30,6 +34,7 @@ class Ruta
         $this->horaFinRealRuta = $horaFinRealRuta;
         $this->estadoAdminRuta = $estadoAdminRuta;
         $this->nombreRuta = $nombreRuta;
+        $this->municipioRuta = $municipioRuta;
     }
 
     public function getIdRuta()
@@ -130,6 +135,16 @@ class Ruta
     public function setNombreRuta($nombreRuta)
     {
         $this->nombreRuta = $nombreRuta;
+    }
+
+    public function getMunicipioRuta()
+    {
+        return $this->municipioRuta;
+    }
+
+    public function setMunicipioRuta($municipioRuta)
+    {
+        $this->municipioRuta = $municipioRuta;
     }
 }
 ?>

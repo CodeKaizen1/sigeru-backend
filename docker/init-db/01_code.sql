@@ -503,6 +503,34 @@ ALTER TABLE contenedor
     ADD CONSTRAINT fk_contenedor_ruta FOREIGN KEY (idRuta) REFERENCES ruta(idRuta),
     ADD INDEX idx_contenedor_ruta (idRuta);
 
+-- ------------------------------------------------------------
+-- 12. Alta de ruta con asignación de contenedores (14/10/2026) — a pedido
+-- de Matías.
+-- ------------------------------------------------------------
+-- Antes idRuta (sección 11) solo se llenaba por el script de migración
+-- (05_rutas_por_contenedor.sql, una sola vez). Ahora el admin arma la ruta
+-- a mano desde el panel: elige un barrio (ya cargado en los contenedores),
+-- tilda al menos un mínimo de contenedores de ese barrio y la ruta se crea
+-- junto con esa asignación — ver backoffice/js/admin/{model,view,controller}.js.
+--
+-- - ruta.municipioRuta: al elegir el barrio, se completa solo (se saca del
+--   municipioContenedor de los contenedores de ese barrio) -- antes "ruta"
+--   no tenía ninguna columna de municipio, solo zonaRuta (el barrio).
+-- - contenedor.ordenRutaContenedor: la app puede sugerir un orden de
+--   recolección por cercanía (aproximado, línea recta por latitud/longitud,
+--   no un ruteo real por calles) y ese orden queda guardado acá -- sin esto,
+--   el panel de chofer/jefe/operario solo podía listar los contenedores de
+--   su ruta alfabéticamente por dirección (ver ContenedorController::
+--   obtenerPorRuta, antes ORDER BY ubicacionContenedor), sin ningún orden
+--   de recorrido real. NULL-able: un contenedor viejo asignado por el
+--   script de migración (antes de este cambio) no tiene orden todavía y
+--   simplemente aparece al final de la lista de su ruta.
+ALTER TABLE ruta
+    ADD COLUMN municipioRuta VARCHAR(20) NULL;
+
+ALTER TABLE contenedor
+    ADD COLUMN ordenRutaContenedor INT NULL;
+
 CREATE TABLE intentoLoginFallido (
     idIntentoLoginFallido INT AUTO_INCREMENT PRIMARY KEY,
     emailIntentoLoginFallido VARCHAR(150) NOT NULL,

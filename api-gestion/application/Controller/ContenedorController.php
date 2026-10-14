@@ -14,11 +14,11 @@ class ContenedorController
 
     public function crear($contenedor)
     {
-        $sql = "INSERT INTO contenedor (idContenedor, ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor, zonaContenedor, municipioContenedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO contenedor (idContenedor, ubicacionContenedor, estadoContenedor, capacidadContenedor, tipoResiduoContenedor, latitudContenedor, longitudContenedor, zonaContenedor, municipioContenedor, idRuta, ordenRutaContenedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$contenedor->getIdContenedor(), $contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor(), $contenedor->getZonaContenedor(), $contenedor->getMunicipioContenedor()]);
+        return $stmt->execute([$contenedor->getIdContenedor(), $contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor(), $contenedor->getZonaContenedor(), $contenedor->getMunicipioContenedor(), $contenedor->getIdRuta(), $contenedor->getOrdenRutaContenedor()]);
     }
 
     public function obtenerTodos()
@@ -98,7 +98,11 @@ class ContenedorController
 
         // Tope duro: una busqueda muy amplia (ej. una sola letra de calle,
         // sin barrio/municipio) no puede devolver miles de filas de una.
-        $sql = "SELECT * FROM contenedor $where ORDER BY ubicacionContenedor LIMIT 300";
+        // 500 (antes 300, 14/10/2026): "Nueva ruta" en el panel de admin
+        // pide TODOS los contenedores de un barrio para armar el checklist
+        // de asignacion, y el barrio mas grande cargado (Pocitos) tiene 396
+        // -- con 300 se cortaban antes de completar ese barrio.
+        $sql = "SELECT * FROM contenedor $where ORDER BY ubicacionContenedor LIMIT 500";
 
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute($parametros);
@@ -136,9 +140,19 @@ class ContenedorController
     // 11): esto devuelve solo los contenedores de ESA ruta en particular.
     // Sin LIMIT: una ruta individual tiene ~25-40 contenedores (rango
     // realista para un camion), muy por debajo de cualquier tope.
+    //
+    // ORDER BY ordenRutaContenedor (14/10/2026, seccion 12): antes ordenaba
+    // alfabeticamente por direccion, sin ningun orden de recorrido real (ver
+    // el comentario que esto reemplaza en panel-chofer.js). "Nueva ruta" en
+    // el panel de admin puede sugerir un orden de recoleccion por cercania y
+    // guardarlo aca -- con esto, chofer/jefe/operario ven sus paradas en ese
+    // orden en vez de alfabetico. "IS NULL" primero en el ORDER BY empuja al
+    // final los contenedores viejos sin orden asignado (los que vinieron del
+    // script de migracion antes de este cambio), en vez de que una columna
+    // NULL los mezclara al principio (asi ordena ASC por defecto en MySQL).
     public function obtenerPorRuta($idRuta)
     {
-        $sql = "SELECT * FROM contenedor WHERE idRuta = ? ORDER BY ubicacionContenedor";
+        $sql = "SELECT * FROM contenedor WHERE idRuta = ? ORDER BY (ordenRutaContenedor IS NULL), ordenRutaContenedor, ubicacionContenedor";
 
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute([$idRuta]);
@@ -164,11 +178,11 @@ class ContenedorController
 
     public function modificar($contenedor)
     {
-        $sql = "UPDATE contenedor SET ubicacionContenedor = ?, estadoContenedor = ?, capacidadContenedor = ?, tipoResiduoContenedor = ?, latitudContenedor = ?, longitudContenedor = ?, zonaContenedor = ?, municipioContenedor = ? WHERE idContenedor = ?";
+        $sql = "UPDATE contenedor SET ubicacionContenedor = ?, estadoContenedor = ?, capacidadContenedor = ?, tipoResiduoContenedor = ?, latitudContenedor = ?, longitudContenedor = ?, zonaContenedor = ?, municipioContenedor = ?, idRuta = ?, ordenRutaContenedor = ? WHERE idContenedor = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
-        return $stmt->execute([$contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor(), $contenedor->getZonaContenedor(), $contenedor->getMunicipioContenedor(), $contenedor->getIdContenedor()]);
+        return $stmt->execute([$contenedor->getUbicacionContenedor(), $contenedor->getEstadoContenedor(), $contenedor->getCapacidadContenedor(), $contenedor->getTipoResiduoContenedor(), $contenedor->getLatitudContenedor(), $contenedor->getLongitudContenedor(), $contenedor->getZonaContenedor(), $contenedor->getMunicipioContenedor(), $contenedor->getIdRuta(), $contenedor->getOrdenRutaContenedor(), $contenedor->getIdContenedor()]);
     }
 
     public function eliminar($idContenedor)
