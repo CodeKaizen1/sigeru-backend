@@ -131,7 +131,15 @@ if ($recurso === 'login') {
 
     if ($intentosController->contarFallidosRecientes($email, $ventanaMinutosLogin) >= $limiteIntentosLogin) {
         http_response_code(429);
-        echo json_encode(['error' => 'Demasiados intentos fallidos para este correo. Esperá unos minutos y volvé a intentar.']);
+        // Punto 14 de la Fase 2 (auditoría 08/10/2026): se manda el tiempo
+        // REAL que falta para destrabarse, para que el frontend pueda armar
+        // una cuenta regresiva propia (mismo patrón que ya usa "Recuperar
+        // contraseña") en vez de mostrar el cartel de error genérico.
+        $segundosRestantes = $intentosController->segundosHastaDesbloqueo($email, $ventanaMinutosLogin, $limiteIntentosLogin);
+        echo json_encode([
+            'error' => 'Demasiados intentos fallidos para este correo. Esperá unos minutos y volvé a intentar.',
+            'segundosRestantes' => $segundosRestantes
+        ]);
         exit;
     }
 

@@ -73,4 +73,49 @@ class IntentoLoginFallidoControllerTest
 
         MiniTest::afirmarIgual(0, $controller->contarFallidosRecientes($this->email), "limpiarPorEmail debería dejar el contador en 0");
     }
+
+    // Punto 14 de la Fase 2: sin intentos (o por debajo del límite) no hay
+    // nada que desbloquear, el tiempo restante es 0.
+    public function testSegundosHastaDesbloqueoEsCeroSinIntentosSuficientes()
+    {
+        $controller = new IntentoLoginFallidoController();
+        $controller->registrarFallido($this->email);
+        $controller->registrarFallido($this->email);
+
+        MiniTest::afirmarIgual(0, $controller->segundosHastaDesbloqueo($this->email, 15, 5), "con menos intentos que el límite no debería haber espera");
+    }
+
+    // Con exactamente el límite de intentos, todos recién registrados (hace
+    // ~0 segundos), el tiempo restante debería ser prácticamente la ventana
+    // completa (15 minutos = 900s) -- se permite un margen chico por el
+    // tiempo real que tarda en ejecutarse el test.
+    public function testSegundosHastaDesbloqueoCercaDeLaVentanaCompletaConIntentosRecientes()
+    {
+        $controller = new IntentoLoginFallidoController();
+        for ($i = 0; $i < 5; $i++) {
+            $controller->registrarFallido($this->email);
+        }
+
+        $segundos = $controller->segundosHastaDesbloqueo($this->email, 15, 5);
+        MiniTest::afirmar($segundos > 895 && $segundos <= 900, "con 5 intentos recién hechos, debería faltar casi la ventana completa (895-900s), dio $segundos");
+    }
+
+    // El tiempo de espera lo marca el intento "límite-ésimo" más reciente (el
+    // más viejo de los últimos 5), no el más antiguo de todos -- si hay un
+    // intento extra de hace 1 hora (ya fuera de la ventana de 15 minutos) no
+    // debería alargar la espera.
+    public function testSegundosHastaDesbloqueoIgnoraIntentosFueraDeLaVentana()
+    {
+        $this->conexion->prepare(
+            "INSERT INTO intentoLoginFallido (emailIntentoLoginFallido, fechaIntentoLoginFallido) VALUES (?, DATE_SUB(NOW(), INTERVAL 1 HOUR))"
+        )->execute([$this->email]);
+
+        $controller = new IntentoLoginFallidoController();
+        for ($i = 0; $i < 5; $i++) {
+            $controller->registrarFallido($this->email);
+        }
+
+        $segundos = $controller->segundosHastaDesbloqueo($this->email, 15, 5);
+        MiniTest::afirmar($segundos > 895 && $segundos <= 900, "el intento de hace 1 hora no debería contar para la espera, dio $segundos");
+    }
 }
