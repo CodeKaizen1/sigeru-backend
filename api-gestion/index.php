@@ -231,17 +231,41 @@ if (($esReportePublicoDeIncidencia || $esJefeCreandoIncidenciaPropia) && $datos 
 // asignar una incidencia de Punta Gorda a una cuadrilla que recorre
 // Pocitos).
 if ($recurso === 'incidencia' && $metodo === 'PUT' && $datos !== null) {
+    $incidenciaControllerValidacion = new IncidenciaController();
+    // Se trae la fila "antes" una sola vez acá arriba -- la necesitan tanto
+    // el chequeo de reapertura (punto 36 de la Fase 6) como el de zona de
+    // cuadrilla de más abajo, que antes la traía aparte.
+    $filaActualParaZona = $incidenciaControllerValidacion->obtenerPorId($datos['idIncidencia'] ?? null);
+    $estadoAnteriorIncidenciaPut = $filaActualParaZona !== false ? ($filaActualParaZona['estadoIncidencia'] ?? null) : null;
+
     if (($datos['estadoIncidencia'] ?? null) === 'resuelta' && trim($datos['resolucionIncidencia'] ?? '') === '') {
         http_response_code(400);
         echo json_encode(['error' => 'Para marcar una incidencia como resuelta hay que indicar qué se hizo para resolverla.']);
         exit;
     }
 
+    // Punto 36 de la Fase 6: reabrir una incidencia ya resuelta (resuelta ->
+    // abierta/en curso) también exige un motivo, mismo criterio que al
+    // resolver -- el frontend ya lo exige (ver
+    // manejarCambiarEstadoIncidencia() en controller.js, que agrega el
+    // motivo al final de la resolución original en vez de reemplazarla) pero
+    // nada lo garantizaba del lado del servidor. Alcanza con pedir que
+    // resolucionIncidencia no quede vacío y que haya cambiado respecto al
+    // valor que ya tenía guardado (si llegara idéntico, es que no se agregó
+    // ningún motivo nuevo).
+    if ($estadoAnteriorIncidenciaPut === 'resuelta' && ($datos['estadoIncidencia'] ?? null) !== 'resuelta') {
+        $resolucionNuevaPut = trim($datos['resolucionIncidencia'] ?? '');
+        $resolucionAnteriorPut = trim($filaActualParaZona !== false ? ($filaActualParaZona['resolucionIncidencia'] ?? '') : '');
+
+        if ($resolucionNuevaPut === '' || $resolucionNuevaPut === $resolucionAnteriorPut) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Para reabrir una incidencia hay que indicar el motivo de la reapertura.']);
+            exit;
+        }
+    }
+
     $idCuadrillaDeclaradaPut = $datos['idCuadrilla'] ?? null;
     if ($idCuadrillaDeclaradaPut !== null && $idCuadrillaDeclaradaPut !== '') {
-        $incidenciaControllerValidacion = new IncidenciaController();
-        $filaActualParaZona = $incidenciaControllerValidacion->obtenerPorId($datos['idIncidencia'] ?? null);
-
         // El body de este PUT siempre viaja completo (ver cuerpoIncidencia() en
         // model.js: no es un patch parcial), así que idCuadrilla casi siempre
         // viene igual al valor ya guardado -- por ejemplo cuando el jefe solo
