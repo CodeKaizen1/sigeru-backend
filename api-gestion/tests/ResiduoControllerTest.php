@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/ResiduoController.php";
-require_once __DIR__ . "/../application/Model/Residuo.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/ResiduoController.php";
+require_once __DIR__ . "/../Application/Model/Residuo.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de residuo contra la base que apunte el .env de esta carpeta. Es una tabla
 // simple sin FK, así que se identifica la fila de prueba por un peso único.

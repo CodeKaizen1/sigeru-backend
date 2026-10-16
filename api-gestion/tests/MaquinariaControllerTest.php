@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/MaquinariaController.php";
-require_once __DIR__ . "/../application/Model/Maquinaria.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/MaquinariaController.php";
+require_once __DIR__ . "/../Application/Model/Maquinaria.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de maquinaria + obtenerPorInstalacion(), contra la base que apunte el .env
 // de esta carpeta. idInstalacion es opcional (nullable), así que los tests no

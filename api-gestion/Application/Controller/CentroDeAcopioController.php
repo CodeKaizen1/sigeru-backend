@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../configuration/Conexion.php";
+require_once __DIR__ . "/../../Configuration/Conexion.php";
 require_once __DIR__ . "/../Model/CentroDeAcopio.php";
 
 class CentroDeAcopioController

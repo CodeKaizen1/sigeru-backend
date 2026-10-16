@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/InstalacionController.php";
-require_once __DIR__ . "/../application/Model/Instalacion.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/InstalacionController.php";
+require_once __DIR__ . "/../Application/Model/Instalacion.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de instalacion contra la base que apunte el .env de esta carpeta.
 class InstalacionControllerTest

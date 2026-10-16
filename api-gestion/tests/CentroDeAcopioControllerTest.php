@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/CentroDeAcopioController.php";
-require_once __DIR__ . "/../application/Model/CentroDeAcopio.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/CentroDeAcopioController.php";
+require_once __DIR__ . "/../Application/Model/CentroDeAcopio.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de centroDeAcopio contra la base que apunte el .env de esta carpeta.
 // crear() crea primero la fila base en "instalacion" y luego la de centroDeAcopio;

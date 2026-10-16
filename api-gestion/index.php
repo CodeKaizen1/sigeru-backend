@@ -26,25 +26,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // exigirSesion(), exigirRolAdministradorSiEscribe(), validarCamposObligatorios()
 // y soloCambianCamposPermitidos() viven en Utilidades.php (antes estaban acá
 // duplicadas idénticas en las 3 APIs) para poder probarlas con PHPUnit.
-require_once __DIR__ . "/application/Utilidades.php";
+require_once __DIR__ . "/Application/Utilidades.php";
 
 // Instalacion primero: CentroDeAcopio, PlantaDeProcesamiento y Vertedero heredan de ella.
-require_once "application/Controller/InstalacionController.php";
-require_once "application/Controller/CentroDeAcopioController.php";
-require_once "application/Controller/PlantaDeProcesamientoController.php";
-require_once "application/Controller/VertederoController.php";
-require_once "application/Controller/ContenedorController.php";
-require_once "application/Controller/MaquinariaController.php";
-require_once "application/Controller/IncidenciaController.php";
-require_once "application/Controller/ResiduoController.php";
-require_once "application/Controller/TipoResiduoController.php";
-require_once "application/Controller/NotificacionController.php";
+require_once "Application/Controller/InstalacionController.php";
+require_once "Application/Controller/CentroDeAcopioController.php";
+require_once "Application/Controller/PlantaDeProcesamientoController.php";
+require_once "Application/Controller/VertederoController.php";
+require_once "Application/Controller/ContenedorController.php";
+require_once "Application/Controller/MaquinariaController.php";
+require_once "Application/Controller/IncidenciaController.php";
+require_once "Application/Controller/ResiduoController.php";
+require_once "Application/Controller/TipoResiduoController.php";
+require_once "Application/Controller/NotificacionController.php";
 
 // Captcha real + mail de confirmación opcional del reporte público de
 // incidencia (pedido de Matías, 16/10/2026) -- ver uso más abajo, en el
 // bloque de $esReportePublicoDeIncidencia.
-require_once __DIR__ . "/configuration/VerificadorCaptcha.php";
-require_once __DIR__ . "/configuration/Mailer.php";
+require_once __DIR__ . "/Configuration/VerificadorCaptcha.php";
+require_once __DIR__ . "/Configuration/Mailer.php";
 
 // Ninguno de estos recursos tiene campos obligatorios propios al crear; todos
 // necesitan su id en "obligatoriosModificar" porque modificar() lo usa en el WHERE.

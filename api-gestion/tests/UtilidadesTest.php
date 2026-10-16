@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../application/Utilidades.php";
+require_once __DIR__ . "/../Application/Utilidades.php";
 
 // Pruebas de las funciones puras del router (sin sesión ni base de datos).
 class UtilidadesTest

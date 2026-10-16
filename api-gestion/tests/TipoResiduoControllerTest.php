@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/TipoResiduoController.php";
-require_once __DIR__ . "/../application/Model/TipoResiduo.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/TipoResiduoController.php";
+require_once __DIR__ . "/../Application/Model/TipoResiduo.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de tipoResiduo contra la base que apunte el .env de esta carpeta.
 class TipoResiduoControllerTest

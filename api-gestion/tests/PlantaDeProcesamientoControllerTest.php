@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/PlantaDeProcesamientoController.php";
-require_once __DIR__ . "/../application/Model/PlantaDeProcesamiento.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/PlantaDeProcesamientoController.php";
+require_once __DIR__ . "/../Application/Model/PlantaDeProcesamiento.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de plantaDeProcesamiento contra la base que apunte el .env de esta carpeta.
 // Mismo patrón que CentroDeAcopio: crear() arma primero la fila base en "instalacion".

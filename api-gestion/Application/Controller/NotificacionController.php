@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../configuration/Conexion.php";
+require_once __DIR__ . "/../../Configuration/Conexion.php";
 require_once __DIR__ . "/../Model/Notificacion.php";
 
 // Punto 16: campanita + banner reales, contra la tabla notificacion que ya

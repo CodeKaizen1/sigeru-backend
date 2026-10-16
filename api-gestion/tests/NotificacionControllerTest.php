@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . "/../application/Controller/NotificacionController.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/NotificacionController.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // Punto 16: notificaciones reales. Arma una cuadrilla de prueba completa (chofer +
 // jefe + operario, todos vía disposable-usuario-con-cascada, mismo patrón de la

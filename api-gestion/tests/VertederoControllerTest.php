@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../application/Controller/VertederoController.php";
-require_once __DIR__ . "/../application/Model/Vertedero.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/VertederoController.php";
+require_once __DIR__ . "/../Application/Model/Vertedero.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // CRUD real de vertedero contra la base que apunte el .env de esta carpeta.
 // Mismo patrón que CentroDeAcopio/PlantaDeProcesamiento: crear() arma primero la fila

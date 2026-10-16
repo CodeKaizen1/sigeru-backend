@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . "/../application/Controller/IncidenciaController.php";
-require_once __DIR__ . "/../application/Model/Incidencia.php";
-require_once __DIR__ . "/../application/Controller/ContenedorController.php";
-require_once __DIR__ . "/../application/Model/Contenedor.php";
-require_once __DIR__ . "/../application/Controller/NotificacionController.php";
-require_once __DIR__ . "/../configuration/Conexion.php";
+require_once __DIR__ . "/../Application/Controller/IncidenciaController.php";
+require_once __DIR__ . "/../Application/Model/Incidencia.php";
+require_once __DIR__ . "/../Application/Controller/ContenedorController.php";
+require_once __DIR__ . "/../Application/Model/Contenedor.php";
+require_once __DIR__ . "/../Application/Controller/NotificacionController.php";
+require_once __DIR__ . "/../Configuration/Conexion.php";
 
 // Reporte de incidencia real, contra la base que apunte el .env de esta carpeta.
 class IncidenciaControllerTest
