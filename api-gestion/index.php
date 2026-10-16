@@ -40,6 +40,12 @@ require_once "application/Controller/ResiduoController.php";
 require_once "application/Controller/TipoResiduoController.php";
 require_once "application/Controller/NotificacionController.php";
 
+// Captcha real + mail de confirmación opcional del reporte público de
+// incidencia (pedido de Matías, 16/10/2026) -- ver uso más abajo, en el
+// bloque de $esReportePublicoDeIncidencia.
+require_once __DIR__ . "/configuration/VerificadorCaptcha.php";
+require_once __DIR__ . "/configuration/Mailer.php";
+
 // Ninguno de estos recursos tiene campos obligatorios propios al crear; todos
 // necesitan su id en "obligatoriosModificar" porque modificar() lo usa en el WHERE.
 $recursos = [
@@ -153,6 +159,20 @@ if ($rol === 'jefeDeCuadrilla' && $recurso === 'incidencia') {
 // Un POST a incidencia que no es de un jefe es el reporte anónimo del vecino: se
 // fuerzan idCuadrilla/estadoIncidencia server-side y se valida que el contenedor exista.
 if ($esReportePublicoDeIncidencia && !$esJefeCreandoIncidenciaPropia && $datos !== null) {
+    // Captcha real (pedido de Matías, 16/10/2026): antes de cualquier otra
+    // validación, porque es la primera línea de defensa contra bots en
+    // este endpoint sin sesión. Si TURNSTILE_SECRET_KEY no está
+    // configurado todavía, VerificadorCaptcha::verificar() deja pasar (ver
+    // su propio comentario) -- así el formulario sigue funcionando
+    // mientras se completa el alta en Cloudflare.
+    $verificadorCaptcha = new VerificadorCaptcha();
+    $tokenCaptcha = $datos['turnstileToken'] ?? null;
+    if (!$verificadorCaptcha->verificar($tokenCaptcha, $_SERVER['REMOTE_ADDR'] ?? null)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'No se pudo verificar el captcha. Volvé a intentar.']);
+        exit;
+    }
+
     $datos['idCuadrilla'] = null;
     $datos['estadoIncidencia'] = 'abierta';
 
@@ -471,6 +491,39 @@ try {
             // "incidencia" devuelve además el id recién creado, para poder buscarlo en Seguimiento.
             if ($recurso === 'incidencia' && $ok !== false) {
                 $respuestaCrear['idIncidencia'] = $ok;
+
+                // Pedido de Matías (16/10/2026): correo OPCIONAL del vecino
+                // para mandarle la confirmación con el número de
+                // seguimiento. emailConfirmacion NUNCA forma parte de
+                // $config['campos'] de "incidencia" (ver arriba), así que
+                // nunca llega al INSERT ni queda guardado en la tabla --
+                // esta es la ÚNICA vez que se lee, y se descarta junto con
+                // el resto de las variables de este request al terminar.
+                $emailConfirmacion = trim($datos['emailConfirmacion'] ?? '');
+                if ($emailConfirmacion !== '' && filter_var($emailConfirmacion, FILTER_VALIDATE_EMAIL)) {
+                    // $contenedorDeclarado lo trae el bloque de más arriba
+                    // (reporte público) -- puede no existir si esta
+                    // incidencia la creó un jefe para su propia cuadrilla
+                    // sin pasar por ese bloque, de ahí el isset().
+                    $direccionTexto = isset($contenedorDeclarado['ubicacionContenedor']) ? $contenedorDeclarado['ubicacionContenedor'] : null;
+
+                    $cuerpoHtmlConfirmacion = '<p>Tu aviso quedó registrado en SiGeRU.</p>'
+                        . '<ul>'
+                        . '<li><strong>Número de seguimiento:</strong> ' . htmlspecialchars((string) $ok) . '</li>'
+                        . '<li><strong>Tipo:</strong> ' . htmlspecialchars((string) ($datos['tipoIncidencia'] ?? '')) . '</li>'
+                        . '<li><strong>Zona:</strong> ' . htmlspecialchars((string) ($datos['zonaIncidencia'] ?? '')) . '</li>'
+                        . ($direccionTexto !== null ? '<li><strong>Dirección:</strong> ' . htmlspecialchars($direccionTexto) . '</li>' : '')
+                        . '</ul>'
+                        . '<p>Podés buscar este aviso más adelante en la sección "Seguimiento" del sitio, con ese número.</p>'
+                        . '<p>Este correo se usó solo para mandarte esta confirmación y no quedó guardado en ningún lado.</p>';
+
+                    $mailerConfirmacion = new Mailer();
+                    // El resultado no afecta la respuesta al cliente: la
+                    // incidencia YA quedó creada -- un mail que no salió
+                    // (SMTP sin configurar, o rechazado) no debe hacer
+                    // parecer que el aviso en sí falló.
+                    $mailerConfirmacion->enviar($emailConfirmacion, 'Confirmación de tu aviso en SiGeRU - #' . $ok, $cuerpoHtmlConfirmacion);
+                }
             }
 
             echo json_encode($respuestaCrear);
