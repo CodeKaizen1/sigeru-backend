@@ -51,14 +51,18 @@ class Conexion
 
     public function conectar()
     {
-        try {
-            $conexion = new PDO("mysql:host=".$this->hostConexion.";dbname=".$this->dbnameConexion.";charset=utf8", $this->usuarioConexion, $this->passwordConexion);
+        // Ítem crítico de la auditoría de cierre (19/10/2026): antes esto
+        // atrapaba la PDOException acá mismo y la imprimía con
+        // $e->getMessage() directo al cliente -- eso puede filtrar detalles
+        // internos (host, nombre de la base, hasta fragmentos de la
+        // contraseña en el mensaje de error de conexión). Ahora se deja
+        // que la excepción suba sin atrapar: el catch(Throwable) genérico
+        // de cada index.php ya la loguea en el servidor y responde un 500
+        // con un mensaje genérico al cliente.
+        $conexion = new PDO("mysql:host=".$this->hostConexion.";dbname=".$this->dbnameConexion.";charset=utf8", $this->usuarioConexion, $this->passwordConexion);
 
-            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            return $conexion;
-        } catch(PDOException $e) {
-            echo "Error de conexión: ".$e->getMessage();
-        }
+        return $conexion;
     }
 }

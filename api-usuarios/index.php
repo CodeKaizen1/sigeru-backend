@@ -163,6 +163,15 @@ if ($recurso === 'login') {
 
     $intentosController->limpiarPorEmail($email);
 
+    // Ítem alto de la auditoría de cierre (19/10/2026): regenerar el id de
+    // sesión al loguearse evita la fijación de sesión (session fixation) --
+    // sin esto, un atacante que le hiciera llegar a la víctima un PHPSESSID
+    // elegido por él de antemano (ej. por un link, o si la cookie no tenía
+    // todavía el flag Secure en algún entorno) podía terminar compartiendo
+    // la sesión ya autenticada de la víctima. `true` borra además la sesión
+    // vieja en el servidor, no solo cambia el id.
+    session_regenerate_id(true);
+
     $_SESSION['cedulaUsuario'] = $resultado['cedulaUsuario'];
     $_SESSION['rolUsuario'] = $resultado['rol'];
 
@@ -625,6 +634,10 @@ if (!$esRegistroPublico && !$esAutoedicionDeCuenta) {
     exigirRolAdministradorSiEscribe($metodo);
 }
 
+// Ítem crítico #2 de la auditoría de cierre (19/10/2026): ver el comentario
+// de exigirPermisoDeLecturaPorRecurso() en Utilidades.php.
+exigirPermisoDeLecturaPorRecurso($recurso, $metodo, $id);
+
 if (!$recurso || !isset($recursos[$recurso])) {
     http_response_code(404);
     echo json_encode(['error' => 'Recurso no encontrado. Recursos disponibles: ' . implode(', ', array_keys($recursos))]);
@@ -658,6 +671,13 @@ try {
                 }
             } else {
                 $resultado = $controller->obtenerTodos();
+
+                // Ítem crítico #2 de la auditoría de cierre: el listado completo de
+                // "usuario" lo necesitan los paneles de Chofer/Jefe/Operario (para
+                // pintar "mi cuadrilla"), pero no sus datos personales de terceros.
+                if ($recurso === 'usuario') {
+                    $resultado = filtrarListadoUsuariosSiNoAdmin($resultado);
+                }
             }
 
             echo json_encode($resultado);

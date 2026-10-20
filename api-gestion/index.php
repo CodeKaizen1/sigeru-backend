@@ -242,6 +242,17 @@ if (($esReportePublicoDeIncidencia || $esJefeCreandoIncidenciaPropia) && $datos 
         echo json_encode(['error' => 'tipoIncidencia inválido']);
         exit;
     }
+
+    // Ítem alto de la auditoría de cierre (19/10/2026): "estadoIncidencia" y
+    // "fechaReporte" venían enteramente del cliente para ALTA de incidencia --
+    // el reporte público ya forzaba estadoIncidencia más arriba (línea ~177),
+    // pero no fechaReporte; la vía del jefe no forzaba ninguno de los dos.
+    // Sin esto, un jefe de cuadrilla podía crear una incidencia ya "resuelta"
+    // de entrada (saltándose todo el flujo abierta -> asignada -> resuelta),
+    // o con una fecha de reporte arbitraria (pasada o futura). Se pisa acá lo
+    // que haya mandado el cliente, para las 2 vías de alta por igual.
+    $datos['estadoIncidencia'] = 'abierta';
+    $datos['fechaReporte'] = date('Y-m-d H:i:s');
 }
 
 // Un admin (o el jefe resolviendo su propia incidencia) no puede dejarla
