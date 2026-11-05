@@ -5,6 +5,7 @@ class Conexion
     private $dbnameConexion;
     private $usuarioConexion;
     private $passwordConexion;
+    private $portConexion;
 
     public function __construct()
     {
@@ -28,6 +29,10 @@ class Conexion
         $this->dbnameConexion = getenv("DB_NAME") ?: ($env["DB_NAME"] ?? "SiGeRU");
         $this->usuarioConexion = getenv("DB_USER") ?: ($env["DB_USER"] ?? "root");
         $this->passwordConexion = getenv("DB_PASS") ?: ($env["DB_PASS"] ?? "");
+        // DB_PORT es opcional (handoff Docker con DB externa, 05/11/2026): si no
+        // se define, 3306 es el puerto estándar de MySQL y el comportamiento
+        // previo (XAMPP, contenedor local) no cambia.
+        $this->portConexion = getenv("DB_PORT") ?: ($env["DB_PORT"] ?? "3306");
     }
 
     // Lee un .env simple (una variable por línea, CLAVE=valor; líneas
@@ -59,7 +64,7 @@ class Conexion
         // que la excepción suba sin atrapar: el catch(Throwable) genérico
         // de cada index.php ya la loguea en el servidor y responde un 500
         // con un mensaje genérico al cliente.
-        $conexion = new PDO("mysql:host=".$this->hostConexion.";dbname=".$this->dbnameConexion.";charset=utf8", $this->usuarioConexion, $this->passwordConexion);
+        $conexion = new PDO("mysql:host=".$this->hostConexion.";port=".$this->portConexion.";dbname=".$this->dbnameConexion.";charset=utf8", $this->usuarioConexion, $this->passwordConexion);
 
         $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
