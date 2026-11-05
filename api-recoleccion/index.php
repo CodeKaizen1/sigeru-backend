@@ -71,27 +71,31 @@ if ($metodo === 'POST' || $metodo === 'PUT') {
 
 exigirSesion();
 
-// Excepción a la regla de solo-administrador: jefeDeCuadrilla puede marcar
-// inicio/fin de la ruta de su propia cuadrilla, sin tocar el resto de la fila.
+// Excepción a la regla de solo-administrador: jefeDeCuadrilla y chofer pueden
+// marcar inicio/fin de la ruta de su propia cuadrilla, sin tocar el resto de la fila.
 $rol = $_SESSION['rolUsuario'] ?? null;
-$esJefeMarcandoSuPropiaRuta = false;
+$esMiembroDeCuadrillaMarcandoSuPropiaRuta = false;
 
-if ($rol === 'jefeDeCuadrilla' && $recurso === 'ruta' && $metodo === 'PUT') {
-    $idJefe = $_SESSION['cedulaUsuario'];
+if (in_array($rol, ['jefeDeCuadrilla', 'chofer'], true) && $recurso === 'ruta' && $metodo === 'PUT') {
+    $idUsuario = $_SESSION['cedulaUsuario'];
     $idRutaObjetivo = $datos['idRuta'] ?? null;
 
     $cuadrillaController = new CuadrillaController();
-    if ($cuadrillaController->idRutaPerteneceAJefe($idRutaObjetivo, $idJefe)) {
+    $perteneceALaCuadrilla = $rol === 'jefeDeCuadrilla'
+        ? $cuadrillaController->idRutaPerteneceAJefe($idRutaObjetivo, $idUsuario)
+        : $cuadrillaController->idRutaPerteneceAChofer($idRutaObjetivo, $idUsuario);
+
+    if ($perteneceALaCuadrilla) {
         $rutaController = new RutaController();
         $filaActualRuta = $rutaController->obtenerPorId($idRutaObjetivo);
 
         if ($filaActualRuta !== false && soloCambianCamposPermitidos($filaActualRuta, $datos, ['estadoRuta', 'horaInicioRealRuta', 'horaFinRealRuta'])) {
-            $esJefeMarcandoSuPropiaRuta = true;
+            $esMiembroDeCuadrillaMarcandoSuPropiaRuta = true;
         }
     }
 }
 
-if (!$esJefeMarcandoSuPropiaRuta) {
+if (!$esMiembroDeCuadrillaMarcandoSuPropiaRuta) {
     exigirRolAdministradorSiEscribe($metodo);
 }
 

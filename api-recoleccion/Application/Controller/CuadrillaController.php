@@ -77,5 +77,21 @@ class CuadrillaController
 
         return $stmt->fetchColumn() > 0;
     }
+
+    // Igual que idRutaPerteneceAJefe pero para el chofer de la cuadrilla (recibe la cédula, no el id interno).
+    public function idRutaPerteneceAChofer($idRuta, $cedulaChofer)
+    {
+        if ($idRuta === null || $idRuta === '' || $cedulaChofer === null) {
+            return false;
+        }
+
+        $sql = "SELECT COUNT(*) FROM cuadrilla c
+                JOIN operarioDeCuadrilla o ON o.idOperarioDeCuadrilla = c.idChofer
+                WHERE c.idRuta = ? AND o.cedulaUsuario = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([$idRuta, $cedulaChofer]);
+
+        return $stmt->fetchColumn() > 0;
+    }
 }
 ?>
