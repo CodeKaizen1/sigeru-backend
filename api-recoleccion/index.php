@@ -168,6 +168,16 @@ try {
                 echo json_encode(['error' => 'Falta el parametro id']);
                 break;
             }
+
+            // DEF-VEH-001: antes solo el frontend bloqueaba borrar un camion con
+            // ruta en curso; llamando directo a este endpoint no habia ningun
+            // control del lado del servidor.
+            if ($recurso === 'vehiculo' && $controller->tieneRutaEnCurso($id)) {
+                http_response_code(409);
+                echo json_encode(['error' => 'No se puede eliminar: el vehiculo esta asignado a una cuadrilla con una ruta en curso.']);
+                break;
+            }
+
             $ok = $controller->eliminar($id);
             echo json_encode(['exito' => (bool) $ok]);
             break;

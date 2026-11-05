@@ -56,6 +56,24 @@ class VehiculoController
         return $stmt->execute([$idVehiculo]);
     }
 
+    // DEF-VEH-001: la proteccion para no borrar un camion con ruta en curso solo
+    // existia en el frontend (camionTieneRutaAsignada(), en
+    // cuadrillas-camiones-rutas.js) -- quien llamara directo al endpoint de
+    // borrado la salteaba por completo. Se agrega aca, del lado del servidor,
+    // uniendo vehiculo -> cuadrilla (por chofer) -> ruta.
+    public function tieneRutaEnCurso($idVehiculo)
+    {
+        $sql = "SELECT COUNT(*) FROM vehiculo v
+                JOIN cuadrilla c ON c.idChofer = v.idChofer
+                JOIN ruta r ON r.idRuta = c.idRuta
+                WHERE v.idVehiculo = ? AND r.estadoRuta = 'en curso'";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([$idVehiculo]);
+
+        return $stmt->fetchColumn() > 0;
+    }
+
     // Camión asignado a un chofer; devuelve false si no tiene ninguno.
     public function obtenerPorChofer($idChofer)
     {

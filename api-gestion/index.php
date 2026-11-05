@@ -479,6 +479,20 @@ try {
                 $resultado = $controller->obtenerTodos();
             }
 
+            if ($recurso === 'incidencia' && $resultado !== null) {
+                // DEF-HIS-001: ninguna pantalla (landing/backoffice) usa este campo --
+                // lo pisan con null antes de pintar -- asi que no hace falta exponerlo
+                // en ninguna lectura, publica o con sesion.
+                if (isset($resultado['idIncidencia'])) {
+                    unset($resultado['emailResponsableIncidencia']);
+                } else {
+                    foreach ($resultado as &$filaIncidencia) {
+                        unset($filaIncidencia['emailResponsableIncidencia']);
+                    }
+                    unset($filaIncidencia);
+                }
+            }
+
             echo json_encode($resultado);
             break;
 
